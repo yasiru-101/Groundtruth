@@ -1,0 +1,314 @@
+# Groundtruth demo scenario — the reproducible messy board.
+#
+# Dates are ABSOLUTE (anchored to `epoch`) so the seeded git history yields
+# identical SHAs on every machine and fixtures never rot. Staleness ages in
+# real time relative to whenever the demo is run.
+#
+# Planted defects (what phase-3 detectors must find):
+#   stale-progress    In Progress ticket whose branch's last commit is old.
+#   merged-open       PR merged on the remote while the ticket stays Open.
+#   orphan-branch     Branch with real commits, never merged, no PR.
+#   done-no-binding   Done ticket with no test binding anywhere.
+#   dup-1 / dup-2     Near-duplicate pair, both open.
+# Control group (Delivery Agent must never touch):
+#   control-a, control-b (label gt-control).
+# Unplanted defects (detectors are NOT tuned on these — honest coverage):
+#   noise-no-branch   In Progress ticket with no branch at all.
+
+scenario_version: 1
+epoch: "2026-08-18T09:00:00+00:00"
+
+jira:
+  project_key: AUTO
+  seed_label: groundtruth-seed
+  control_label: gt-control
+  issue_type: Task
+
+git:
+  author:
+    name: Groundtruth Seeder
+    email: seeder@groundtruth.local
+  base_branch: main
+
+# Named file-content blocks; commits reference them by name.
+files:
+  app_v0: |
+    """Demo service under Groundtruth stewardship."""
+
+
+    def search(query: str) -> list[str]:
+        return [f"{query}-{i}" for i in range(3)]
+
+
+    def export_report(rows: list[str]) -> str:
+        return "\n".join(rows)
+  app_v1: |
+    """Demo service under Groundtruth stewardship."""
+
+
+    def search(query: str, page: int = 1) -> list[str]:
+        start = max(1, page) * 3
+        return [f"{query}-{i}" for i in range(start, start + 3)]
+
+
+    def export_report(rows: list[str]) -> str:
+        return "\n".join(rows)
+  app_v2: |
+    """Demo service under Groundtruth stewardship."""
+
+
+    PAGE_SIZE = 3
+
+
+    def search(query: str, page: int = 1) -> list[str]:
+        page = max(1, page)
+        start = (page - 1) * PAGE_SIZE
+        return [f"{query}-{i}" for i in range(start, start + PAGE_SIZE)]
+
+
+    def export_report(rows: list[str]) -> str:
+        return "\n".join(rows)
+  app_v3: |
+    """Demo service under Groundtruth stewardship."""
+
+
+    import csv
+    import io
+
+
+    def search(query: str, page: int = 1) -> list[str]:
+        return [f"{query}-{i}" for i in range(3)]
+
+
+    def export_report(rows: list[str]) -> str:
+        return "\n".join(rows)
+
+
+    def export_csv(rows: list[list[str]]) -> str:
+        buffer = io.StringIO()
+        csv.writer(buffer).writerows(rows)
+        return buffer.getvalue()
+  tests_v0: |
+    from app import export_report, search
+
+
+    def test_search_returns_results() -> None:
+        assert search("x") == ["x-0", "x-1", "x-2"]
+
+
+    def test_export_report_joins_rows() -> None:
+        assert export_report(["a", "b"]) == "a\nb"
+  tests_v1: |
+    from app import export_csv, export_report, search
+
+
+    def test_search_returns_results() -> None:
+        assert search("x") == ["x-0", "x-1", "x-2"]
+
+
+    def test_export_report_joins_rows() -> None:
+        assert export_report(["a", "b"]) == "a\nb"
+
+
+    def test_export_csv_quotes_commas() -> None:
+        assert export_csv([["a", "b,c"]]) == "a,'b,c'\r\n"
+  sso_v1: |
+    class SSOProvider:
+        """Interface for single sign-on providers."""
+
+        def verify(self, token: str) -> bool:
+            raise NotImplementedError
+  sso_v2: |
+    class SSOProvider:
+        """Interface for single sign-on providers."""
+
+        def verify(self, token: str) -> bool:
+            raise NotImplementedError
+
+
+    REGISTRY: dict[str, SSOProvider] = {}
+
+
+    def register(name: str, provider: SSOProvider) -> None:
+        REGISTRY[name] = provider
+  sso_docs_v1: |
+    # SSO provider registry
+
+    Providers register themselves under a stable name at import time.
+    Verification is delegated to the registered provider.
+  readme_v0: |
+    # demo-service
+
+    A deliberately messy service repo for the Groundtruth demo.
+
+    The board claims work happens here. Groundtruth checks.
+  readme_v1: |
+    # demo-service
+
+    A deliberately messy service repo for the Groundtruth demo.
+
+    The board claims work happens here. Groundtruth checks.
+
+    Dependency pins are reviewed quarterly by the control process.
+  gitignore_v0: |
+    __pycache__/
+    *.pyc
+    .pytest_cache/
+    .gt-report.json
+
+# Commits: id, message, days before epoch, files written by that commit.
+commits:
+  - id: c_main_init
+    message: "chore: initial service skeleton"
+    days_before: 21
+    files:
+      app.py: app_v0
+      tests/test_app.py: tests_v0
+      README.md: readme_v0
+      .gitignore: gitignore_v0
+  - id: c_stale_1
+    message: "wip: page parameter for search"
+    days_before: 13
+    files:
+      app.py: app_v1
+  - id: c_stale_2
+    message: "wip: extract PAGE_SIZE constant"
+    days_before: 12
+    files:
+      app.py: app_v2
+  - id: c_orphan_1
+    message: "refactor(auth): extract SSO provider interface"
+    days_before: 10
+    files:
+      sso.py: sso_v1
+  - id: c_orphan_2
+    message: "wip: provider registry"
+    days_before: 9
+    files:
+      sso.py: sso_v2
+  - id: c_orphan_3
+    message: "wip: registry docs"
+    days_before: 8
+    files:
+      docs/sso.md: sso_docs_v1
+  - id: c_merged_1
+    message: "feat: csv export for weekly reports"
+    days_before: 6
+    files:
+      app.py: app_v3
+  - id: c_merged_2
+    message: "test: csv export quoting"
+    days_before: 5
+    files:
+      tests/test_app.py: tests_v1
+  - id: c_control_1
+    message: "chore: pin dependencies for security review"
+    days_before: 2
+    files:
+      README.md: readme_v1
+
+tickets:
+  - hint: stale-progress
+    summary: "Add pagination to the search results API"
+    description: >
+      Search currently returns the whole result set in one payload. Add
+      page-based pagination so callers can request windows. Work started on
+      a feature branch but has stalled.
+    points: 5
+    components: [api]
+    status: "In Progress"
+    branch:
+      name_template: "feature/{key}"
+      commits: [c_stale_1, c_stale_2]
+      push: true
+
+  - hint: merged-open
+    summary: "Add CSV export to weekly reports"
+    description: >
+      Weekly reports are generated as plain text. Export them as CSV so
+      finance can ingest them directly.
+    points: 3
+    components: [reports]
+    status: "Open"
+    branch:
+      name_template: "feature/{key}"
+      commits: [c_merged_1, c_merged_2]
+      push: true
+      pr:
+        base: main
+        merge: squash
+
+  - hint: orphan-branch
+    summary: "Refactor auth middleware to support SSO"
+    description: >
+      Extract an SSO provider interface from the auth middleware so
+      enterprise customers can plug in their identity provider.
+    points: 8
+    components: [auth]
+    status: "Open"
+    branch:
+      name_template: "feature/{key}"
+      commits: [c_orphan_1, c_orphan_2, c_orphan_3]
+      push: true
+
+  - hint: done-no-binding
+    summary: "Upgrade Postgres driver to v3"
+    description: >
+      Upgrade the database driver to v3 to clear the security advisory.
+      Marked done after manual verification.
+    points: 2
+    components: [data]
+    status: "Done"
+
+  - hint: dup-1
+    summary: "Fix timeout errors in report generation"
+    description: >
+      Users report intermittent timeout errors while generating large
+      weekly reports. Investigate and raise the timeout budget.
+    points: 3
+    components: [reports]
+    status: "Open"
+
+  - hint: dup-2
+    summary: "Fix timeouts in the report generator"
+    description: >
+      The report generator times out for big reports. Should raise the
+      limit.
+    points: 2
+    components: [reports]
+    status: "Open"
+    comments:
+      - "Possibly related to the other report timeout ticket."
+
+  - hint: control-a
+    summary: "Update dependency pins for security audit"
+    description: >
+      Control ticket: part of the quarterly security-audit batch. The
+      Delivery Agent must never pick this up.
+    points: 1
+    components: [infra]
+    status: "Open"
+    control: true
+
+  - hint: control-b
+    summary: "Improve onboarding docs"
+    description: >
+      Control ticket: documentation batch owned by the docs team. Branch
+      exists and is healthy; Delivery must not touch it.
+    points: 2
+    components: [docs]
+    status: "In Progress"
+    control: true
+    branch:
+      name_template: "gt-control/{key}"
+      commits: [c_control_1]
+      push: true
+
+  - hint: noise-no-branch
+    summary: "Migrate the notification service to a queue"
+    description: >
+      Move notification delivery off the request path onto a queue. No
+      work has been started.
+    points: 5
+    components: [infra]
+    status: "In Progress"

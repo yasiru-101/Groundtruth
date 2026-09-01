@@ -14,6 +14,7 @@ class EvidenceKind(str, Enum):
     JIRA_CHANGELOG = "jira_changelog"
     TEST_RESULT = "test_result"
     BRANCH = "branch"
+    LEDGER = "ledger"
 
 
 class Evidence(BaseModel):

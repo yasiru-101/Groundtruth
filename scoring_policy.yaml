@@ -1,0 +1,35 @@
+# Groundtruth scoring policy — FROZEN at Phase 3 (2026-09-01).
+#
+# The weights below are fixed BEFORE the Phase 4/5 agents exist, so no agent
+# can be tuned against them. Every score record carries policy_version and
+# policy_hash (sha256 of this file); a changed policy is a new version, never
+# a silent retune.
+#
+# Weight invariant (anti-gaming, checked by tests/test_score_antigaming.py):
+#   done_integrity >= progress_integrity + staleness_health
+# A ticket in In Progress without in-window commits loses at most
+# progress_integrity + staleness_health of weight; the same ticket closed as
+# Done without a merged PR + passing CI loses done_integrity. The inequality
+# guarantees closing-without-proof can never raise the total score.
+
+policy_version: "2026-09-01.1"
+
+staleness:
+  window_days: 7      # In Progress with no commit within N days is stale
+  stale_day_cap: 30   # staleness budget per active ticket, in day-equivalents
+
+duplicate:
+  similarity_threshold: 0.45  # token-set Jaccard over summaries (plural-folded)
+  token_min_length: 3         # tokens shorter than this are ignored
+
+dimensions:
+  ac_validity:
+    weight: 0.15
+  progress_integrity:
+    weight: 0.20
+  done_integrity:
+    weight: 0.35
+  staleness_health:
+    weight: 0.15
+  duplication_health:
+    weight: 0.15
