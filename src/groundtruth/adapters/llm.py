@@ -6,12 +6,17 @@ closed registry entry; calling with an unregistered name fails. Responses
 flow through the record/replay envelope, so the request hash (model +
 prompt name + variables) is the cache key: RECORD persists each response to
 fixtures, REPLAY serves it without a network call.
+
+Prompts are loaded from ``src/groundtruth/prompts/<name>.md`` when that file
+exists; otherwise the inline fallback text is used. This lets later phases
+extend prompts without changing adapter code.
 """
 
 from __future__ import annotations
 
 import json
 from enum import Enum
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -58,6 +63,21 @@ PROMPTS: dict[PromptName, str] = {
 }
 
 
+def _prompt_path(name: PromptName) -> Path | None:
+    """Return the path to a prompt markdown file, if one exists."""
+    here = Path(__file__).resolve().parent
+    candidate = here.parent / "prompts" / f"{name.value}.md"
+    return candidate if candidate.exists() else None
+
+
+def _load_prompt(name: PromptName) -> str:
+    """Load prompt text from file, falling back to the inline registry."""
+    path = _prompt_path(name)
+    if path is not None:
+        return path.read_text(encoding="utf-8")
+    return PROMPTS[name]
+
+
 class LLMClient:
     def __init__(
         self,
@@ -95,13 +115,12 @@ class LLMClient:
 
     def complete(self, name: PromptName, variables: dict[str, Any]) -> str:
         """Run one named prompt over ``variables``; returns the response text."""
-        try:
-            system_prompt = PROMPTS[name]
-        except KeyError:
+        if not isinstance(name, PromptName):
             known = ", ".join(p.value for p in PromptName)
             raise LLMError(
                 f"Unknown prompt {name!r}. The registry is closed: {known}"
-            ) from None
+            )
+        system_prompt = _load_prompt(name)
 
         user_content = json.dumps(variables, sort_keys=True, ensure_ascii=False)
         body: dict[str, Any] = {

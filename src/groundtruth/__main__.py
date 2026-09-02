@@ -20,7 +20,16 @@ from groundtruth.adapters.base import Envelope, FixtureCorrupt, FixtureStore, Re
 from groundtruth.adapters.github import GitHubClient, GitHubError
 from groundtruth.adapters.gitlog import GitLog, GitLogError
 from groundtruth.adapters.jira import JiraClient, JiraError
-from groundtruth.agents import AuditResult, BoardSteward, StewardError
+from groundtruth.adapters.llm import LLMClient
+from groundtruth.agents import (
+    AuditResult,
+    BoardSteward,
+    IntakeAgent,
+    IntakeError,
+    PlannerAgent,
+    PlannerError,
+    StewardError,
+)
 from groundtruth.clock import FrozenClock
 from groundtruth.config import ExecMode, RunMode, Settings
 from groundtruth.contracts.ledger import ApprovalRef, LedgerMode
@@ -422,6 +431,54 @@ def _steward_stack(
     )
 
 
+def _intake_stack(
+    settings: Settings,
+    run_mode: RunMode,
+    ledger: LedgerWriter | None = None,
+) -> IntakeAgent:
+    sandbox = settings.workspace_dir
+    workspace_id = _workspace_identity(sandbox)
+    slug = ""
+    if settings.github_repo_owner and settings.github_repo_name:
+        slug = f"{settings.github_repo_owner}/{settings.github_repo_name}"
+    guard = GitGuard(sandbox, workspace_id, allowed_remote=slug)
+    envelope = Envelope(mode=run_mode, store=FixtureStore(settings.fixtures_dir))
+    jira = JiraClient(settings, envelope)
+    llm = LLMClient(settings, envelope)
+    steward = BoardSteward(
+        settings=settings,
+        envelope=envelope,
+        jira=jira,
+        gitlog=GitLog(envelope, guard),
+        github=GitHubClient(settings, envelope, guard) if slug else None,
+        project_key=_steward_project_key(settings),
+        ledger=ledger,
+    )
+    return IntakeAgent(
+        settings=settings,
+        jira=jira,
+        llm=llm,
+        steward=steward,
+        ledger=ledger,
+    )
+
+
+def _require_intake_creds(settings: Settings) -> None:
+    missing: list[str] = []
+    if not settings.jira_base_url:
+        missing.append("JIRA_BASE_URL")
+    if not settings.jira_email:
+        missing.append("JIRA_EMAIL")
+    if not settings.jira_api_token:
+        missing.append("JIRA_API_TOKEN")
+    if not settings.llm_model:
+        missing.append("LLM_MODEL")
+    if missing:
+        raise RuntimeError(
+            f"Intake requires: {', '.join(missing)}. Set them in .env or environment."
+        )
+
+
 def _observer_settings(ctx: click.Context, command: str) -> Settings:
     if ctx.obj["exec_mode"] != ExecMode.DRY_RUN:
         raise click.UsageError(
@@ -574,18 +631,191 @@ def _run_score(ctx: click.Context) -> None:
 
 
 @cli.command()
+@exec_options
 @click.argument("file", type=click.Path(exists=True))
 @click.pass_context
-def intake(ctx: click.Context, file: str) -> None:
+def intake(
+    ctx: click.Context,
+    mode: str | None,
+    run_mode: str | None,
+    changeset: str | None,
+    file: str,
+) -> None:
     """Raw text → tickets (propose, then apply)."""
-    click.echo(f"Phase 4: intake not yet implemented. File: {file}")
+    _merge_exec_options(ctx, mode, run_mode, changeset)
+    try:
+        _run_intake(ctx, Path(file))
+    except (IntakeError, JiraError, StewardError, RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+def _run_intake(ctx: click.Context, file_path: Path) -> None:
+    settings = Settings.from_env()
+    run_mode = ctx.obj["run_mode"]
+    settings.run_mode = run_mode
+    if run_mode in (RunMode.LIVE, RunMode.RECORD):
+        _require_intake_creds(settings)
+
+    exec_mode = ctx.obj["exec_mode"]
+
+    if exec_mode == ExecMode.DRY_RUN:
+        agent = _intake_stack(settings, run_mode)
+        result = agent.decompose(file_path)
+        click.echo("Dry run — no tickets created.")
+        click.echo(
+            f"Decomposed {file_path.name}: "
+            f"{len(result.accepted)} accepted, "
+            f"{len(result.refused)} refused, "
+            f"{len(result.duplicates)} duplicate suspect(s), "
+            f"{len(result.rejected_raw)} rejected raw item(s)."
+        )
+        for story in result.accepted:
+            click.echo(f"  ACCEPT  {story.summary} ({story.points} pts)")
+        for story in result.refused:
+            codes = ", ".join(story.dor.failures) if story.dor else "unknown"
+            click.echo(f"  REFUSE  {story.summary} [{codes}]")
+        return
+
+    if exec_mode == ExecMode.PROPOSE:
+        run_dir = _new_run_dir(settings, "intake")
+        ledger = LedgerWriter(run_dir / "ledger.jsonl")
+        agent = _intake_stack(settings, run_mode, ledger=ledger)
+        cs = agent.propose(file_path)
+        cs_hash = cs.compute_hash()
+        click.echo(f"Proposed changeset {cs_hash} ({len(cs.items)} items).")
+        click.echo(
+            "Review it, then run: groundtruth --mode apply "
+            f"--changeset {cs_hash} --run-mode {run_mode.value} intake {file_path}"
+        )
+        click.echo(f"Ledger: {run_dir}")
+        return
+
+    changeset_hash = ctx.obj["changeset"]
+    load_changeset(settings.artifacts_dir, changeset_hash)
+    run_dir = _new_run_dir(settings, "intake")
+    ledger = LedgerWriter(run_dir / "ledger.jsonl")
+    agent = _intake_stack(settings, run_mode, ledger=ledger)
+    approval = _approval_ref(changeset_hash)
+    created = agent.apply(
+        load_changeset(settings.artifacts_dir, changeset_hash), approval, run_dir=run_dir
+    )
+    _write_json(
+        run_dir / "created.json",
+        {"created": [s.model_dump(mode="json") for s in created]},
+    )
+    click.echo(
+        f"Created {len(created)} ticket(s). Rerun with the same changeset will create 0."
+    )
+    for story in created:
+        click.echo(f"  {story.jira_key}: {story.summary}")
+    click.echo(f"Ledger + created.json: {run_dir}")
 
 
 @cli.command()
+@exec_options
+@click.option(
+    "--capacity",
+    type=int,
+    default=None,
+    help="Override sprint capacity (default: velocity from recent Done tickets).",
+)
+@click.option(
+    "--assignees",
+    type=str,
+    default="",
+    help="Comma-separated list of assignees for load balancing.",
+)
 @click.pass_context
-def plan(ctx: click.Context) -> None:
+def plan(
+    ctx: click.Context,
+    mode: str | None,
+    run_mode: str | None,
+    changeset: str | None,
+    capacity: int | None,
+    assignees: str,
+) -> None:
     """Capacity-checked sprint proposal."""
-    click.echo("Phase 4: plan not yet implemented.")
+    _merge_exec_options(ctx, mode, run_mode, changeset)
+    try:
+        _run_plan(ctx, capacity, assignees)
+    except (PlannerError, StewardError, JiraError, GitHubError, GitLogError, RuntimeError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+def _run_plan(
+    ctx: click.Context, capacity: int | None, assignees_raw: str
+) -> None:
+    settings = _observer_settings(ctx, "plan")
+    run_mode = ctx.obj["run_mode"]
+    settings.run_mode = run_mode
+    if run_mode in (RunMode.LIVE, RunMode.RECORD):
+        settings.validate_live_mode()
+
+    run_dir = _new_run_dir(settings, "plan")
+    ledger = LedgerWriter(run_dir / "ledger.jsonl")
+    steward = _steward_stack(settings, run_mode, ledger=ledger)
+    board, repo = steward.collect()
+    clock = FrozenClock(board.as_of)
+
+    assignees = [a.strip() for a in assignees_raw.split(",") if a.strip()]
+    planner = PlannerAgent(
+        board,
+        repo,
+        clock,
+        capacity=capacity,
+        assignees=assignees,
+        intake_state_path=settings.artifacts_dir / "intake_state.json",
+    )
+    plan = planner.build_plan()
+
+    _write_json(run_dir / "plan.json", plan.model_dump(mode="json"))
+
+    plan_json = plan.model_dump_json()
+    outputs_hash = hashlib.sha256(plan_json.encode("utf-8")).hexdigest()
+    ledger.append(
+        actor="planner",
+        action="plan.run",
+        mode=_ledger_mode_for(run_mode),
+        subject=board.project_key,
+        inputs_hash=board_snapshot_hash(board, repo),
+        outputs_hash=outputs_hash,
+        evidence=[
+            {
+                "velocity": plan.velocity,
+                "capacity": plan.capacity,
+                "selected": len(plan.selected),
+                "unscheduled": len(plan.unscheduled),
+                "over_committed": plan.over_committed,
+            }
+        ],
+    )
+
+    click.echo(f"Sprint plan for {board.project_key} as of {board.as_of.isoformat()}")
+    click.echo(
+        f"Velocity: {plan.velocity}, capacity: {plan.capacity}, "
+        f"selected: {plan.total_selected_points}/{plan.total_candidate_points} points"
+    )
+    if plan.over_committed:
+        click.echo("WARNING: demand exceeds capacity.")
+    if plan.cycles:
+        click.echo(f"Dependency cycles detected: {len(plan.cycles)}")
+        for cycle in plan.cycles:
+            click.echo(f"  {' -> '.join(cycle)}")
+    click.echo("Selected:")
+    for ticket in plan.selected:
+        owner = f" ({ticket.assignee})" if ticket.assignee else ""
+        deps = f" [deps: {', '.join(ticket.depends_on)}]" if ticket.depends_on else ""
+        click.echo(f"  {ticket.key}: {ticket.summary} — {ticket.points} pts{owner}{deps}")
+    if plan.unscheduled:
+        click.echo("Unscheduled:")
+        for ticket in plan.unscheduled:
+            click.echo(f"  {ticket.key}: {ticket.summary} — {ticket.points} pts")
+    if plan.assignments:
+        click.echo("Assignments:")
+        for owner, keys in sorted(plan.assignments.items()):
+            total = sum(t.points for t in plan.selected if t.key in keys)
+            click.echo(f"  {owner}: {', '.join(keys)} ({total} pts)")
+    click.echo(f"Ledger + plan.json: {run_dir}")
 
 
 @cli.command()
