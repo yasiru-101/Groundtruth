@@ -165,8 +165,21 @@ class IntakeAgent:
         summary = str(item.get("summary", "")).strip()
         description = str(item.get("description", "")).strip()
 
+        ac_value = item.get("acceptance_criteria", [])
+        ac_items: list[dict[str, Any]] = []
+        if isinstance(ac_value, dict):
+            ac_items = [ac_value]
+        elif isinstance(ac_value, list):
+            for ac in ac_value:
+                if isinstance(ac, dict):
+                    ac_items.append(ac)
+                elif isinstance(ac, str):
+                    parsed = self._parse_ac_string(ac)
+                    if parsed:
+                        ac_items.append(parsed)
+
         criteria: list[AcceptanceCriterion] = []
-        for n, ac in enumerate(item.get("acceptance_criteria", []), start=1):
+        for n, ac in enumerate(ac_items, start=1):
             given = str(ac.get("given", "")).strip()
             when = str(ac.get("when", "")).strip()
             then = str(ac.get("then", "")).strip()
@@ -183,6 +196,8 @@ class IntakeAgent:
             )
 
         points_raw = item.get("points")
+        if points_raw is None:
+            points_raw = item.get("story_points")
         try:
             points = int(points_raw) if points_raw is not None else None
         except (TypeError, ValueError):
@@ -219,6 +234,23 @@ class IntakeAgent:
                 llm_call_id=llm_call_id,
             ),
         )
+
+    @staticmethod
+    def _parse_ac_string(text: str) -> dict[str, str] | None:
+        """Parse a plain Given/When/Then sentence into its three parts."""
+        lower = text.lower()
+        given_idx = lower.find("given ")
+        when_idx = lower.find("when ")
+        then_idx = lower.find("then ")
+        if given_idx == -1 or when_idx == -1 or then_idx == -1:
+            return None
+        # Strip the leading keyword from each segment.
+        given = text[given_idx + 6 : when_idx].strip(" ,;")
+        when = text[when_idx + 4 : then_idx].strip(" ,;")
+        then = text[then_idx + 4 :].strip(" ,;")
+        if not given or not when or not then:
+            return None
+        return {"given": given, "when": when, "then": then}
 
     @staticmethod
     def _normalize_ac_text(criteria: list[AcceptanceCriterion]) -> str:
@@ -511,8 +543,17 @@ class IntakeAgent:
         if story.points is not None:
             labels.append(f"{_POINTS_LABEL_PREFIX}{story.points}")
         for component in story.components:
-            labels.append(f"{_COMPONENT_LABEL_PREFIX}{component}")
+            labels.append(
+                f"{_COMPONENT_LABEL_PREFIX}{IntakeAgent._label_slug(component)}"
+            )
         return labels
+
+    @staticmethod
+    def _label_slug(text: str) -> str:
+        """Sanitize a component name so it is a valid Jira label."""
+        # Jira labels cannot contain spaces; keep alphanumerics, hyphens, underscores.
+        normalized = text.lower().strip().replace(" ", "-")
+        return "".join(c for c in normalized if c.isalnum() or c in "-_").strip("-")
 
     def _finalize_story(self, story: Story, jira_key: str) -> None:
         story.jira_key = jira_key

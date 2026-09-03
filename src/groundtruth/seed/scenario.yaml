@@ -229,7 +229,7 @@ tickets:
       finance can ingest them directly.
     points: 3
     components: [reports]
-    status: "Open"
+    status: "To Do"
     branch:
       name_template: "feature/{key}"
       commits: [c_merged_1, c_merged_2]
@@ -245,7 +245,7 @@ tickets:
       enterprise customers can plug in their identity provider.
     points: 8
     components: [auth]
-    status: "Open"
+    status: "To Do"
     branch:
       name_template: "feature/{key}"
       commits: [c_orphan_1, c_orphan_2, c_orphan_3]
@@ -267,7 +267,7 @@ tickets:
       weekly reports. Investigate and raise the timeout budget.
     points: 3
     components: [reports]
-    status: "Open"
+    status: "To Do"
 
   - hint: dup-2
     summary: "Fix timeouts in the report generator"
@@ -276,7 +276,7 @@ tickets:
       limit.
     points: 2
     components: [reports]
-    status: "Open"
+    status: "To Do"
     comments:
       - "Possibly related to the other report timeout ticket."
 
@@ -287,7 +287,7 @@ tickets:
       Delivery Agent must never pick this up.
     points: 1
     components: [infra]
-    status: "Open"
+    status: "To Do"
     control: true
 
   - hint: control-b

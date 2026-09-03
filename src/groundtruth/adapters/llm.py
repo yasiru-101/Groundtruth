@@ -123,19 +123,21 @@ class LLMClient:
         system_prompt = _load_prompt(name)
 
         user_content = json.dumps(variables, sort_keys=True, ensure_ascii=False)
-        body: dict[str, Any] = {
+        api_body: dict[str, Any] = {
             "model": self._settings.llm_model,
-            "prompt_name": name.value,
             "temperature": 0,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_content},
             ],
         }
-        spec = RequestSpec(method="POST", url="/chat/completions", body=body)
+        # Include prompt_name only in the fixture key / audit record, not in the
+        # request body, because providers like Gemini reject unknown parameters.
+        spec_body = {**api_body, "prompt_name": name.value}
+        spec = RequestSpec(method="POST", url="/chat/completions", body=spec_body)
 
         def live() -> str:
-            response = self._client.post("/chat/completions", json=body)
+            response = self._client.post("/chat/completions", json=api_body)
             if response.status_code >= 400:
                 raise LLMError(
                     f"LLM request failed: HTTP {response.status_code}: "
