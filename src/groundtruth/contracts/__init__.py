@@ -1,3 +1,12 @@
+from .delivery import (
+    AuthoredTests,
+    DeliveryPhase,
+    DeliveryResult,
+    LockViolationRecord,
+    RedGateClassification,
+    RedGateReport,
+    RepairIteration,
+)
 from .discrepancy import (
     ActionVerb,
     Discrepancy,
@@ -7,6 +16,7 @@ from .discrepancy import (
 )
 from .evidence import Evidence, EvidenceKind
 from .ledger import ApprovalRef, LedgerEntry, LedgerMode, LedgerOutcome
+from .report import ReportResult, ScoreDelta, SprintHealth, StandupItem
 from .score import DimensionScore, TruthfulnessScore
 from .story import (
     AcceptanceCriterion,
@@ -30,8 +40,11 @@ __all__ = [
     "AcceptanceCriterion",
     "ActionVerb",
     "ApprovalRef",
+    "AuthoredTests",
     "DedupeVerdict",
     "DefinitionOfReadyResult",
+    "DeliveryPhase",
+    "DeliveryResult",
     "DimensionScore",
     "Discrepancy",
     "DiscrepancySeverity",
@@ -43,9 +56,17 @@ __all__ = [
     "LedgerEntry",
     "LedgerMode",
     "LedgerOutcome",
+    "LockViolationRecord",
     "ProposedAction",
     "ProvenanceRef",
+    "RedGateClassification",
+    "RedGateReport",
     "RedProof",
+    "RepairIteration",
+    "ReportResult",
+    "ScoreDelta",
+    "SprintHealth",
+    "StandupItem",
     "Story",
     "StoryStatus",
     "TestOutcome",

@@ -157,17 +157,26 @@ class FakeGitHub:
         return [dict(pr) for pr in self._prs.values()
                 if wanted == "ALL" or pr["state"] == wanted]
 
-    def pr_create(self, title: str, body: str, head: str, base: str) -> str:
+    def pr_create(
+        self,
+        title: str,
+        body: str | None = None,
+        head: str | None = None,
+        base: str = "main",
+        *,
+        draft: bool = False,
+        body_file: str | None = None,
+    ) -> str:
         self._next_pr += 1
         number = self._next_pr
         self._prs[number] = {
             "number": number,
             "state": "OPEN",
             "title": title,
-            "headRefName": head,
+            "headRefName": head or "",
             "baseRefName": base,
         }
-        self.prs_created.append(head)
+        self.prs_created.append(head or "")
         return f"https://github.com/{self.slug}/pull/{number}"
 
     def pr_merge(self, number: int, method: str = "squash") -> None:
@@ -317,7 +326,10 @@ class TestJiraSeederIdempotency:
         assert fake.created == [f"AUTO-{i}" for i in range(1, 10)]
         assert [t["key"] for t in manifest] == fake.created
         # every ticket converged to its scenario status (fake starts at To Do)
-        assert len(fake.transitions) == len(scenario["tickets"])
+        expected_transitions = sum(
+            1 for t in scenario["tickets"] if t.get("status") != "To Do"
+        )
+        assert len(fake.transitions) == expected_transitions
         for ticket, entry in zip(scenario["tickets"], manifest):
             assert fake._issues[entry["key"]]["fields"]["status"]["name"] == ticket["status"]
         # exactly one seeded comment exists (dup-2 carries it)

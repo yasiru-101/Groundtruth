@@ -20,14 +20,18 @@ from groundtruth.adapters.base import Envelope, FixtureCorrupt, FixtureStore, Re
 from groundtruth.adapters.github import GitHubClient, GitHubError
 from groundtruth.adapters.gitlog import GitLog, GitLogError
 from groundtruth.adapters.jira import JiraClient, JiraError
-from groundtruth.adapters.llm import LLMClient
+from groundtruth.adapters.llm import LLMClient, LLMError
 from groundtruth.agents import (
     AuditResult,
     BoardSteward,
+    DeliveryAgent,
+    DeliveryError,
     IntakeAgent,
     IntakeError,
     PlannerAgent,
     PlannerError,
+    ReportingAgent,
+    ReportingError,
     StewardError,
 )
 from groundtruth.clock import FrozenClock
@@ -463,6 +467,51 @@ def _intake_stack(
     )
 
 
+def _delivery_stack(
+    settings: Settings,
+    run_mode: RunMode,
+    ledger: LedgerWriter | None = None,
+    approval: ApprovalRef | None = None,
+) -> DeliveryAgent:
+    sandbox = settings.workspace_dir
+    workspace_id = _workspace_identity(sandbox)
+    slug = ""
+    if settings.github_repo_owner and settings.github_repo_name:
+        slug = f"{settings.github_repo_owner}/{settings.github_repo_name}"
+    guard = GitGuard(sandbox, workspace_id, allowed_remote=slug)
+    envelope = Envelope(mode=run_mode, store=FixtureStore(settings.fixtures_dir))
+    return DeliveryAgent(
+        settings=settings,
+        jira=JiraClient(settings, envelope),
+        llm=LLMClient(settings, envelope),
+        guard=guard,
+        github=GitHubClient(settings, envelope, guard) if slug else None,
+        ledger=ledger,
+        approval=approval,
+    )
+
+
+def _report_stack(
+    settings: Settings,
+    run_mode: RunMode,
+    ledger: LedgerWriter | None = None,
+) -> ReportingAgent:
+    llm: LLMClient | None = None
+    has_llm_config = bool(settings.llm_model and settings.llm_base_url)
+    can_call_llm = run_mode is RunMode.REPLAY or bool(settings.llm_api_key)
+    if has_llm_config and can_call_llm:
+        llm = LLMClient(
+            settings,
+            Envelope(mode=run_mode, store=FixtureStore(settings.fixtures_dir)),
+        )
+    return ReportingAgent(
+        settings=settings,
+        steward=_steward_stack(settings, run_mode, ledger=ledger),
+        llm=llm,
+        ledger=ledger,
+    )
+
+
 def _require_intake_creds(settings: Settings) -> None:
     missing: list[str] = []
     if not settings.jira_base_url:
@@ -476,6 +525,25 @@ def _require_intake_creds(settings: Settings) -> None:
     if missing:
         raise RuntimeError(
             f"Intake requires: {', '.join(missing)}. Set them in .env or environment."
+        )
+
+
+def _require_delivery_creds(settings: Settings) -> None:
+    required = [
+        ("JIRA_BASE_URL", settings.jira_base_url),
+        ("JIRA_EMAIL", settings.jira_email),
+        ("JIRA_API_TOKEN", settings.jira_api_token),
+        ("GITHUB_TOKEN", settings.github_token),
+        ("GITHUB_REPO_OWNER", settings.github_repo_owner),
+        ("GITHUB_REPO_NAME", settings.github_repo_name),
+        ("LLM_API_KEY", settings.llm_api_key),
+        ("LLM_MODEL", settings.llm_model),
+        ("LLM_BASE_URL", settings.llm_base_url),
+    ]
+    missing = [name for name, value in required if not value]
+    if missing:
+        raise RuntimeError(
+            f"Delivery requires: {', '.join(missing)}. Set them in .env or environment."
         )
 
 
@@ -819,18 +887,126 @@ def _run_plan(
 
 
 @cli.command()
+@exec_options
 @click.argument("key", type=str)
 @click.pass_context
-def deliver(ctx: click.Context, key: str) -> None:
+def deliver(
+    ctx: click.Context,
+    mode: str | None,
+    run_mode: str | None,
+    changeset: str | None,
+    key: str,
+) -> None:
     """Branch → red → green → PR."""
-    click.echo(f"Phase 5: deliver not yet implemented. Key: {key}")
+    _merge_exec_options(ctx, mode, run_mode, changeset)
+    try:
+        _run_deliver(ctx, key)
+    except (DeliveryError, JiraError, GitHubError, LLMError, OSError, RuntimeError, ValueError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+def _validate_delivery_changeset(changeset: object, key: str) -> None:
+    items = getattr(changeset, "items", [])
+    if len(items) != 1:
+        raise DeliveryError("Delivery changesets must contain exactly one ticket.")
+    item = items[0]
+    if item.action != "delivery.deliver" or item.subject != key:
+        raise DeliveryError(
+            f"Changeset does not approve delivery of {key}; it approves "
+            f"{item.action} for {item.subject}."
+        )
+
+
+def _run_deliver(ctx: click.Context, key: str) -> None:
+    settings = Settings.from_env()
+    run_mode = ctx.obj["run_mode"]
+    settings.run_mode = run_mode
+    exec_mode = ctx.obj["exec_mode"]
+
+    if exec_mode == ExecMode.DRY_RUN:
+        click.echo("Dry run — no branch, test, commit, push, or PR will be created.")
+        click.echo(f"Would deliver ticket: {key}")
+        click.echo("Run with --mode propose to create an approval changeset.")
+        return
+
+    if exec_mode == ExecMode.PROPOSE:
+        run_dir = _new_run_dir(settings, "deliver")
+        ledger = LedgerWriter(run_dir / "ledger.jsonl")
+        cs = propose_changeset(
+            settings.artifacts_dir,
+            [ChangeItem(action="delivery.deliver", subject=key)],
+            description=f"Deliver Jira ticket {key} through the guarded PR workflow",
+        )
+        cs_hash = cs.compute_hash()
+        ledger.append(
+            actor="delivery",
+            action="delivery.propose",
+            mode=LedgerMode.PROPOSE,
+            subject=key,
+            inputs_hash=hashlib.sha256(key.encode("utf-8")).hexdigest(),
+            outputs_hash=cs_hash,
+            evidence=[{"changeset": cs_hash}],
+        )
+        click.echo(f"Proposed changeset {cs_hash} (1 ticket).")
+        click.echo(
+            "Review it, then run: groundtruth --mode apply "
+            f"--changeset {cs_hash} --run-mode live deliver {key}"
+        )
+        click.echo(f"Ledger: {run_dir}")
+        return
+
+    _require_live(ctx, "deliver")
+    _require_delivery_creds(settings)
+    changeset_hash = ctx.obj["changeset"]
+    approved_changeset = load_changeset(settings.artifacts_dir, changeset_hash)
+    _validate_delivery_changeset(approved_changeset, key)
+
+    run_dir = _new_run_dir(settings, "deliver")
+    ledger = LedgerWriter(run_dir / "ledger.jsonl")
+    result = _delivery_stack(
+        settings,
+        run_mode,
+        ledger=ledger,
+        approval=_approval_ref(changeset_hash),
+    ).deliver(key, run_dir=run_dir)
+
+    if result.pr_url:
+        state = "green" if result.green else "draft"
+        click.echo(f"Delivery {key}: {state} PR {result.pr_url}")
+    elif result.refusals:
+        click.echo(f"Delivery {key} refused: {'; '.join(result.refusals)}")
+    else:
+        click.echo(f"Delivery {key} ended at {result.phase.value}.")
+    click.echo(f"Ledger + delivery_result.json: {run_dir}")
 
 
 @cli.command()
+@exec_options
 @click.pass_context
-def report(ctx: click.Context) -> None:
+def report(
+    ctx: click.Context,
+    mode: str | None,
+    run_mode: str | None,
+    changeset: str | None,
+) -> None:
     """Standup digest, sprint health, score delta."""
-    click.echo("Phase 5: report not yet implemented.")
+    _merge_exec_options(ctx, mode, run_mode, changeset)
+    try:
+        _run_report(ctx)
+    except _OBSERVER_ERRORS + (ReportingError, OSError) as exc:
+        raise click.ClickException(str(exc)) from exc
+
+
+def _run_report(ctx: click.Context) -> None:
+    settings = _observer_settings(ctx, "report")
+    run_mode = ctx.obj["run_mode"]
+    settings.run_mode = run_mode
+    run_dir = _new_run_dir(settings, "report")
+    ledger = LedgerWriter(run_dir / "ledger.jsonl")
+    result = _report_stack(settings, run_mode, ledger=ledger).report(run_dir)
+
+    click.echo(result.prose)
+    click.echo(f"Ledger + report.json + report.md: {run_dir}")
 
 
 def main() -> None:

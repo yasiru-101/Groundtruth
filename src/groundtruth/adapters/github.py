@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from pathlib import Path
 from typing import Any
 
 from groundtruth.adapters.base import Envelope, RequestSpec
@@ -144,28 +145,33 @@ class GitHubClient:
     def pr_create(
         self,
         title: str,
-        body: str,
-        head: str,
+        body: str | None = None,
+        head: str | None = None,
         base: str = "main",
+        *,
+        draft: bool = False,
+        body_file: Path | str | None = None,
     ) -> str:
         """Create a PR; returns its URL."""
-        return self._gh(
-            [
-                "gh",
-                "pr",
-                "create",
-                "--repo",
-                self.slug,
-                "--title",
-                title,
-                "--body",
-                body,
-                "--head",
-                head,
-                "--base",
-                base,
-            ]
-        )
+        args = [
+            "gh",
+            "pr",
+            "create",
+            "--repo",
+            self.slug,
+            "--title",
+            title,
+        ]
+        if body_file is not None:
+            args.extend(["--body-file", str(Path(body_file).resolve())])
+        elif body is not None:
+            args.extend(["--body", body])
+        if head is not None:
+            args.extend(["--head", head])
+        args.extend(["--base", base])
+        if draft:
+            args.append("--draft")
+        return self._gh(args)
 
     def pr_merge(self, number: int, method: str = "merge") -> str:
         if method not in ("merge", "squash", "rebase"):

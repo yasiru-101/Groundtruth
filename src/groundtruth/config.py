@@ -61,6 +61,9 @@ class Settings(BaseModel):
             llm_api_key=os.getenv("LLM_API_KEY", ""),
             llm_model=os.getenv("LLM_MODEL", ""),
             llm_base_url=os.getenv("LLM_BASE_URL", ""),
+            workspace_dir=os.getenv("GT_WORKSPACE_DIR", PROJECT_ROOT / "workspace"),
+            artifacts_dir=os.getenv("GT_ARTIFACTS_DIR", PROJECT_ROOT / "artifacts"),
+            fixtures_dir=os.getenv("GT_FIXTURES_DIR", PROJECT_ROOT / "fixtures"),
         )
 
     def validate_live_mode(self) -> None:
