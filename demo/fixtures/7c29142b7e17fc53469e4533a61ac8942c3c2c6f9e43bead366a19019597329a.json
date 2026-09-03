@@ -1,0 +1,13 @@
+{
+  "hash": "7c29142b7e17fc53469e4533a61ac8942c3c2c6f9e43bead366a19019597329a",
+  "spec": {
+    "method": "GIT",
+    "url": "git:log",
+    "params": {
+      "kind": "branches"
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": "main\nfeature/AUTO-1\nfeature/AUTO-2\nfeature/AUTO-3\nfeature/AUTO-99\n"
+}

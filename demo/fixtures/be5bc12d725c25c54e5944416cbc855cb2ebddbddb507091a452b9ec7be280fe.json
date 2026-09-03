@@ -1,0 +1,17 @@
+{
+  "hash": "be5bc12d725c25c54e5944416cbc855cb2ebddbddb507091a452b9ec7be280fe",
+  "spec": {
+    "method": "GET",
+    "url": "/rest/api/3/issue/DEMO-101/changelog",
+    "params": {
+      "startAt": 0,
+      "maxResults": 100
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "values": [],
+    "total": 0
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "hash": "d6bdf18161bbe62573f822cad5fe18ed7e35aa1deaa444c3bf49137fc29d0581",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/issue",
+    "params": null,
+    "body": {
+      "fields": {
+        "project": {
+          "key": "DEMO"
+        },
+        "summary": "Add dark mode toggle",
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Users want a dark theme for the web UI.\n\nGiven: the user is on the settings page\nWhen: they toggle dark mode\nThen: the UI switches to a dark theme"
+                }
+              ]
+            }
+          ]
+        },
+        "issuetype": {
+          "name": "Story"
+        },
+        "labels": [
+          "gt-idem",
+          "gt-idem-91e9178653282a712ac5bd8b61f81657",
+          "gt-points-2",
+          "gt-component-ui"
+        ]
+      }
+    }
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "key": "DEMO-102",
+    "id": "10002"
+  }
+}

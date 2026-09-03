@@ -9,7 +9,12 @@ venv/
 *.egg
 
 artifacts/run_*/
+artifacts/changesets/
+artifacts/intake_state.json
 fixtures/*.json
+
+tmp_*/
+tmp_intake_notes.md
 
 workspace/
 !workspace/.gitkeep

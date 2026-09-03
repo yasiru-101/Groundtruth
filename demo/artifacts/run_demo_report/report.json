@@ -1,0 +1,46 @@
+{
+  "health": {
+    "velocity_forecast": 5,
+    "capacity": 5,
+    "over_committed": false,
+    "open_discrepancies": 3,
+    "unverified_count": 1,
+    "stale_count": 1
+  },
+  "items": [
+    {
+      "jira_key": "AUTO-1",
+      "summary": "Fix login flakiness",
+      "status": "In Progress",
+      "assignee": null,
+      "blocked_by": [],
+      "discrepancy_count": 1,
+      "note": "STALE_IN_PROGRESS"
+    },
+    {
+      "jira_key": "AUTO-4",
+      "summary": "Remove legacy cache",
+      "status": "To Do",
+      "assignee": null,
+      "blocked_by": [],
+      "discrepancy_count": 0,
+      "note": ""
+    }
+  ],
+  "delta": {
+    "previous_run_id": "run_20260903-133935_score",
+    "policy_hash": "274c3d109dd80a0fdca907d1fc79f55b71f0f7aa98bc1ecdfae01ca2a52d3193",
+    "comparable": true,
+    "dimension_deltas": {
+      "ac_validity": 0.0,
+      "progress_integrity": 0.0,
+      "done_integrity": 0.0,
+      "staleness_health": 0.0,
+      "duplication_health": 0.0
+    },
+    "overall_delta": 0.0,
+    "reason": "Compared with run_20260903-133935_score, the most recent score using the current policy."
+  },
+  "prose": "## Standup\n2 active ticket(s) are in the current board snapshot.\n0 ticket(s) list local dependencies.\n3 discrepancy(s) need attention.\n\n## Sprint health\nVelocity forecast is 5 points against 5 points of capacity.\nThe sprint is within forecast capacity.\n3 open discrepancy(s), 1 unverified item(s), and 1 stale item(s).\n\n## Score delta\nScore changed +0.0000. Compared with run_20260903-133935_score, the most recent score using the current policy.",
+  "prose_source": "template"
+}

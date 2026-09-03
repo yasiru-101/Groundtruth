@@ -1,0 +1,131 @@
+{
+  "run_id": "2507a318-82b8-4a30-ba97-4a3a5ff63b66",
+  "run_mode": "replay",
+  "project_key": "AUTO",
+  "as_of": "2026-09-01 12:00:00+00:00",
+  "policy_hash": "274c3d109dd80a0fdca907d1fc79f55b71f0f7aa98bc1ecdfae01ca2a52d3193",
+  "board_snapshot_hash": "b10d9ad4b820d799b9fa8a9d85e710e0a11efe5721ac1759e9c7e1912d56772b",
+  "discrepancies": [
+    {
+      "discrepancy_id": "1e545b664a9bb68e1ab0c4fbc27ba18df3bdf05628435167746a6368aba23824",
+      "type": "ORPHAN_BRANCH",
+      "severity": "low",
+      "subject": "feature/AUTO-99",
+      "evidence": [
+        {
+          "kind": "branch",
+          "ref": "feature/AUTO-99",
+          "url": "https://github.com/yasiru-101/Groundtruth/tree/feature/AUTO-99",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "commits": "1",
+            "tip": "dddddddddddddddddddddddddddddddddddddddd"
+          }
+        },
+        {
+          "kind": "commit",
+          "ref": "dddddddddddddddddddddddddddddddddddddddd",
+          "url": "https://github.com/yasiru-101/Groundtruth/commit/dddddddddddddddddddddddddddddddddddddddd",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "author_date": "2026-08-25T10:00:00+00:00",
+            "subject": "chore: scratch work"
+          }
+        }
+      ],
+      "proposed_action": {
+        "verb": "CREATE_TICKET",
+        "target": "feature/AUTO-99",
+        "params": {
+          "commits": "1"
+        },
+        "reversible": true,
+        "requires_approval": true
+      },
+      "detected_at": "2026-09-01T12:00:00Z",
+      "as_of": "2026-09-01T12:00:00Z",
+      "detector_version": "0.1.0"
+    },
+    {
+      "discrepancy_id": "ca4bced8c3d9e2f84190df7a50b04acd0cdb7b690b60664bbcbb1829d72b7eb7",
+      "type": "STALE_IN_PROGRESS",
+      "severity": "medium",
+      "subject": "AUTO-1",
+      "evidence": [
+        {
+          "kind": "jira_changelog",
+          "ref": "AUTO-1",
+          "url": "https://groundtruth-demo.atlassian.net/browse/AUTO-1",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "status": "In Progress",
+            "status_changed_at": "2026-08-05 10:00:00+00:00"
+          }
+        },
+        {
+          "kind": "commit",
+          "ref": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "url": "https://github.com/yasiru-101/Groundtruth/commit/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "author_date": "2026-08-12T10:00:00+00:00",
+            "subject": "wip: token refresh",
+            "age_days": "20",
+            "window_days": "7",
+            "branch": "feature/AUTO-1"
+          }
+        }
+      ],
+      "proposed_action": {
+        "verb": "COMMENT",
+        "target": "AUTO-1",
+        "params": {
+          "reason": "no commit within the staleness window"
+        },
+        "reversible": true,
+        "requires_approval": true
+      },
+      "detected_at": "2026-09-01T12:00:00Z",
+      "as_of": "2026-09-01T12:00:00Z",
+      "detector_version": "0.1.0"
+    },
+    {
+      "discrepancy_id": "9108080d40e0f7025fa58ca482615d82c8b873849fb6c410b74f282d4f99eb22",
+      "type": "UNVERIFIED_NO_MAPPING",
+      "severity": "low",
+      "subject": "AUTO:ac-mapping-coverage",
+      "evidence": [
+        {
+          "kind": "jira_changelog",
+          "ref": "AUTO-1",
+          "url": "https://groundtruth-demo.atlassian.net/browse/AUTO-1",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "acs": "1",
+            "bound": "no"
+          }
+        },
+        {
+          "kind": "jira_changelog",
+          "ref": "AUTO-2",
+          "url": "https://groundtruth-demo.atlassian.net/browse/AUTO-2",
+          "observed_at": "2026-09-01T12:00:00Z",
+          "detail": {
+            "acs": "1",
+            "bound": "no"
+          }
+        }
+      ],
+      "proposed_action": {
+        "verb": "NONE",
+        "target": "",
+        "params": {},
+        "reversible": true,
+        "requires_approval": true
+      },
+      "detected_at": "2026-09-01T12:00:00Z",
+      "as_of": "2026-09-01T12:00:00Z",
+      "detector_version": "0.1.0"
+    }
+  ]
+}

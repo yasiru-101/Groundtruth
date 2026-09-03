@@ -1,0 +1,23 @@
+{
+  "trace_version": "1.0",
+  "run_id": "0edd7eec-82a7-4a3e-80e5-0d05766bb48a",
+  "created_at": "2026-09-01T12:00:00Z",
+  "bindings": [
+    {
+      "ac_id": "AUTO-2#1",
+      "test_node_id": "tests/test_auto_2.py::test_profile_update",
+      "bound_by": "delivery",
+      "bound_at": "2026-09-01T12:00:00Z",
+      "test_file_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "test_snapshot": {
+    "ran_at": "2026-09-01T12:00:00Z",
+    "collected_node_ids": [
+      "tests/test_auto_2.py::test_profile_update"
+    ],
+    "outcomes": {
+      "tests/test_auto_2.py::test_profile_update": "passed"
+    }
+  }
+}

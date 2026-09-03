@@ -1,0 +1,21 @@
+{
+  "hash": "5257effb9151bbd800b760748c9d64628193bfe842d92c0e4651fb38b17f7b21",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/search/jql",
+    "params": null,
+    "body": {
+      "jql": "project = \"DEMO\" AND labels = \"gt-idem\"",
+      "fields": [
+        "key",
+        "labels"
+      ],
+      "maxResults": 100
+    }
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "issues": [],
+    "nextPageToken": null
+  }
+}

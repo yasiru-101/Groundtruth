@@ -1,0 +1,16 @@
+{
+  "hash": "480a1e8a565ca5279c51a3fc1cd3707335829d692de7df9834989a2c1b007075",
+  "spec": {
+    "method": "GIT",
+    "url": "git:log",
+    "params": {
+      "rev": "feature/AUTO-2",
+      "base": "main",
+      "merges_only": false,
+      "max_count": 500
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\u001f2026-08-22T10:00:00+00:00\u001f2026-08-22T10:00:00+00:00\u001fDemo Dev\u001fdev@example.com\u001ffeat: csv export\u001f\u001e"
+}

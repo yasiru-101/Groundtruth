@@ -1,0 +1,29 @@
+{
+  "hash": "10306e5dbcb26cba4c4f1c86a46ec38f41c8e116f0df9217862234c4807bab9c",
+  "spec": {
+    "method": "GH",
+    "url": "gh:cli",
+    "params": {
+      "args": [
+        "gh",
+        "api",
+        "repos/yasiru-101/Groundtruth/commits/merge-auto-2/check-runs",
+        "--method",
+        "GET",
+        "-f",
+        "per_page=100"
+      ]
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-03T13:30:00.535749+00:00",
+  "payload": {
+    "check_runs": [
+      {
+        "status": "completed",
+        "conclusion": "success",
+        "name": "CI"
+      }
+    ]
+  }
+}

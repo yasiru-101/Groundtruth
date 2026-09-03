@@ -1,0 +1,13 @@
+{
+  "test_file": "tests/test_auto_2.py",
+  "bindings": [
+    {
+      "ac_id": "AUTO-2#1",
+      "test_node_id": "tests/test_auto_2.py::test_profile_update",
+      "bound_by": "delivery",
+      "bound_at": "2026-09-01T12:00:00Z",
+      "test_file_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "content": "def test_profile_update():\n    profile = update_profile(name=\"Ada\")\n    assert profile.name == \"Ada\"\n"
+}

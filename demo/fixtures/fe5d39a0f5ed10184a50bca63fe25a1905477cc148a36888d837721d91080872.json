@@ -1,0 +1,25 @@
+{
+  "hash": "fe5d39a0f5ed10184a50bca63fe25a1905477cc148a36888d837721d91080872",
+  "spec": {
+    "method": "POST",
+    "url": "/chat/completions",
+    "params": null,
+    "body": {
+      "model": "gpt-4o-mini",
+      "prompt_name": "intake_decompose",
+      "temperature": 0,
+      "messages": [
+        {
+          "role": "system",
+          "content": "You convert raw meeting notes into structured backlog tickets. For each distinct piece of work, emit a JSON object with fields: summary (one line), given/when/then acceptance criteria (each a complete sentence), story points (1,2,3,5,8), and components. Output only a JSON array, no prose. If a note is too vague to form a criterion, set it aside into a 'rejected' array with the reason."
+        },
+        {
+          "role": "user",
+          "content": "{\"doc_id\": \"D:\\\\MIT\\\\Agentic Jira\\\\tmp_intake_notes.md\", \"text\": \"- Add retry logic to the checkout service so transient payment failures recover automatically.\\n- Build a dark-mode toggle for the web UI.\\n\"}"
+        }
+      ]
+    }
+  },
+  "recorded_at": "2026-09-02T00:00:00+00:00",
+  "payload": "[\n  {\n    \"summary\": \"Add retry logic to checkout\",\n    \"description\": \"Checkout intermittently fails under load; add automatic retry with backoff.\",\n    \"acceptance_criteria\": [\n      {\n        \"given\": \"a payment fails transiently\",\n        \"when\": \"the checkout service retries\",\n        \"then\": \"the order completes successfully\"\n      }\n    ],\n    \"points\": 3,\n    \"components\": [\n      \"checkout\"\n    ]\n  },\n  {\n    \"summary\": \"Add dark mode toggle\",\n    \"description\": \"Users want a dark theme for the web UI.\",\n    \"acceptance_criteria\": [\n      {\n        \"given\": \"the user is on the settings page\",\n        \"when\": \"they toggle dark mode\",\n        \"then\": \"the UI switches to a dark theme\"\n      }\n    ],\n    \"points\": 2,\n    \"components\": [\n      \"ui\"\n    ]\n  }\n]"
+}

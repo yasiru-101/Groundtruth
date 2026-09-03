@@ -1,0 +1,31 @@
+{
+  "hash": "22cb48120b695c1911bae0d12b5f18cc1d71b318006417f67b55a9d337cb7b3b",
+  "spec": {
+    "method": "GET",
+    "url": "/rest/api/3/issue/AUTO-3/changelog",
+    "params": {
+      "startAt": 0,
+      "maxResults": 100
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": {
+    "startAt": 0,
+    "maxResults": 100,
+    "total": 1,
+    "values": [
+      {
+        "id": "1",
+        "created": "2026-08-30T09:00:00+00:00",
+        "items": [
+          {
+            "field": "status",
+            "fromString": "To Do",
+            "toString": "x"
+          }
+        ]
+      }
+    ]
+  }
+}

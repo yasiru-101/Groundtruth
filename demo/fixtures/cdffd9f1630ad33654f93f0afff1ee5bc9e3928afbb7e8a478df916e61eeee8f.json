@@ -1,0 +1,29 @@
+{
+  "hash": "cdffd9f1630ad33654f93f0afff1ee5bc9e3928afbb7e8a478df916e61eeee8f",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/issue/DEMO-102/comment",
+    "params": null,
+    "body": {
+      "body": {
+        "type": "doc",
+        "version": 1,
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Created by Groundtruth intake from tmp_intake_notes.md (idem: 91e9178653282a712ac5bd8b61f81657)."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "id": "20002"
+  }
+}

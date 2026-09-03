@@ -1,0 +1,42 @@
+{
+  "ticket_key": "AUTO-2",
+  "branch": "feature/AUTO-2",
+  "phase": "pr",
+  "red_gate": {
+    "classifications": [
+      {
+        "node_id": "tests/test_auto_2.py::test_profile_update",
+        "failed": true,
+        "failure_kind": "assertion",
+        "message_excerpt": "assert profile.name == 'Ada'"
+      }
+    ],
+    "is_valid_red": true
+  },
+  "iterations": [
+    {
+      "iteration": 1,
+      "phase": "implement",
+      "files_changed": [
+        "src/profile.py",
+        "tests/test_auto_2.py"
+      ],
+      "red_gate_valid": true,
+      "green": true,
+      "violations": [],
+      "notes": [
+        "Implemented profile name update path."
+      ]
+    }
+  ],
+  "green": true,
+  "pr_url": "https://github.com/yasiru-101/Groundtruth/pull/2",
+  "draft": false,
+  "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "refusals": [],
+  "unrelated_failures": [],
+  "notes": [
+    "Delivered through red/green gate with traceable tests."
+  ],
+  "run_dir": "D:\\MIT\\Agentic Jira\\demo\\artifacts\\run_demo_deliver"
+}

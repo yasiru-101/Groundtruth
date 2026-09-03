@@ -1,0 +1,22 @@
+{
+  "project_key": "AUTO",
+  "as_of": "2026-09-01T12:00:00Z",
+  "velocity": 5,
+  "capacity": 5,
+  "total_candidate_points": 3,
+  "total_selected_points": 3,
+  "over_committed": false,
+  "cycles": [],
+  "selected": [
+    {
+      "key": "AUTO-1",
+      "summary": "Fix login flakiness",
+      "points": 3,
+      "components": [],
+      "depends_on": [],
+      "assignee": null
+    }
+  ],
+  "unscheduled": [],
+  "assignments": {}
+}

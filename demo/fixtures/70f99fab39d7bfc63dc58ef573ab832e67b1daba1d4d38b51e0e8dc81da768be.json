@@ -1,0 +1,16 @@
+{
+  "hash": "70f99fab39d7bfc63dc58ef573ab832e67b1daba1d4d38b51e0e8dc81da768be",
+  "spec": {
+    "method": "GIT",
+    "url": "git:log",
+    "params": {
+      "rev": "feature/AUTO-3",
+      "base": "main",
+      "merges_only": false,
+      "max_count": 500
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": "cccccccccccccccccccccccccccccccccccccccc\u001f2026-08-31T10:00:00+00:00\u001f2026-08-31T10:00:00+00:00\u001fDemo Dev\u001fdev@example.com\u001ffeat: dark mode toggle\u001f\u001e"
+}

@@ -1,0 +1,42 @@
+{
+  "hash": "b330a32a7dc1ec0b5de26b2383952149d99faff67e3442fbffe2368d85d92d07",
+  "spec": {
+    "method": "GH",
+    "url": "gh:cli",
+    "params": {
+      "args": [
+        "gh",
+        "pr",
+        "list",
+        "--repo",
+        "yasiru-101/Groundtruth",
+        "--state",
+        "all",
+        "--limit",
+        "100",
+        "--json",
+        "number,title,state,headRefName,baseRefName,author,createdAt,mergedAt,mergeCommit,url"
+      ]
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-03T13:30:00.534223+00:00",
+  "payload": [
+    {
+      "number": 2,
+      "title": "Add CSV export to weekly reports",
+      "state": "MERGED",
+      "headRefName": "feature/AUTO-2",
+      "baseRefName": "main",
+      "author": {
+        "login": "seeder"
+      },
+      "createdAt": "2026-08-25T09:00:00+00:00",
+      "mergedAt": "2026-08-18T09:00:00+00:00",
+      "mergeCommit": {
+        "oid": "merge-auto-2"
+      },
+      "url": "https://github.com/yasiru-101/Groundtruth/pull/2"
+    }
+  ]
+}

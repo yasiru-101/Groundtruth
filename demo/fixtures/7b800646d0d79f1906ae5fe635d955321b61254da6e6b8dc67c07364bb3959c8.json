@@ -1,0 +1,122 @@
+{
+  "hash": "7b800646d0d79f1906ae5fe635d955321b61254da6e6b8dc67c07364bb3959c8",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/search/jql",
+    "params": null,
+    "body": {
+      "jql": "project = \"AUTO\" ORDER BY key ASC",
+      "fields": [
+        "summary",
+        "status",
+        "labels",
+        "description",
+        "components"
+      ],
+      "maxResults": 100
+    }
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": {
+    "issues": [
+      {
+        "key": "AUTO-1",
+        "fields": {
+          "summary": "Fix login flakiness",
+          "status": {
+            "name": "In Progress"
+          },
+          "labels": [
+            "gt-points-3"
+          ],
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Given: a login session\nWhen: the token expires\nThen: the user is re-authenticated silently"
+                  }
+                ]
+              }
+            ]
+          },
+          "components": []
+        }
+      },
+      {
+        "key": "AUTO-2",
+        "fields": {
+          "summary": "Support CSV export",
+          "status": {
+            "name": "Done"
+          },
+          "labels": [
+            "gt-points-5"
+          ],
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Given: a weekly report\nWhen: the caller asks for CSV\nThen: a CSV file downloads"
+                  }
+                ]
+              }
+            ]
+          },
+          "components": []
+        }
+      },
+      {
+        "key": "AUTO-3",
+        "fields": {
+          "summary": "Dark mode toggle",
+          "status": {
+            "name": "In Progress"
+          },
+          "labels": [
+            "gt-points-2",
+            "gt-control"
+          ],
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Given: the settings page\nWhen: dark mode is toggled\nThen: the theme switches without reload"
+                  }
+                ]
+              }
+            ]
+          },
+          "components": []
+        }
+      },
+      {
+        "key": "AUTO-4",
+        "fields": {
+          "summary": "Remove legacy cache",
+          "status": {
+            "name": "To Do"
+          },
+          "labels": [],
+          "description": null,
+          "components": []
+        }
+      }
+    ],
+    "nextPageToken": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "hash": "df04b6a255d78810a3b0d4bb6a44ed3dabb06b7fa17eca02cf52a791a0d51896",
+  "spec": {
+    "method": "GIT",
+    "url": "git:log",
+    "params": {
+      "rev": "feature/AUTO-1",
+      "base": "main",
+      "merges_only": false,
+      "max_count": 500
+    },
+    "body": null
+  },
+  "recorded_at": "2026-09-01T12:00:00+00:00",
+  "payload": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u001f2026-08-12T10:00:00+00:00\u001f2026-08-12T10:00:00+00:00\u001fDemo Dev\u001fdev@example.com\u001fwip: token refresh\u001f\u001e"
+}

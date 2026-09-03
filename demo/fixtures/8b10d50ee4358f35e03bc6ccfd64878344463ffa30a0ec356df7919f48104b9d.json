@@ -1,0 +1,87 @@
+{
+  "hash": "8b10d50ee4358f35e03bc6ccfd64878344463ffa30a0ec356df7919f48104b9d",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/search/jql",
+    "params": null,
+    "body": {
+      "jql": "project = \"DEMO\" ORDER BY key ASC",
+      "fields": [
+        "summary",
+        "status",
+        "labels",
+        "description",
+        "components"
+      ],
+      "maxResults": 100
+    }
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "issues": [
+      {
+        "key": "DEMO-101",
+        "fields": {
+          "summary": "Add retry logic to checkout",
+          "status": {
+            "name": "To Do"
+          },
+          "labels": [
+            "gt-idem",
+            "gt-idem-5fad27bced141fa0b82103cfc1a66862",
+            "gt-points-3",
+            "gt-component-checkout"
+          ],
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Checkout intermittently fails under load; add automatic retry with backoff.\n\nGiven: a payment fails transiently\nWhen: the checkout service retries\nThen: the order completes successfully"
+                  }
+                ]
+              }
+            ]
+          },
+          "components": []
+        }
+      },
+      {
+        "key": "DEMO-102",
+        "fields": {
+          "summary": "Add dark mode toggle",
+          "status": {
+            "name": "To Do"
+          },
+          "labels": [
+            "gt-idem",
+            "gt-idem-91e9178653282a712ac5bd8b61f81657",
+            "gt-points-2",
+            "gt-component-ui"
+          ],
+          "description": {
+            "type": "doc",
+            "version": 1,
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "Users want a dark theme for the web UI.\n\nGiven: the user is on the settings page\nWhen: they toggle dark mode\nThen: the UI switches to a dark theme"
+                  }
+                ]
+              }
+            ]
+          },
+          "components": []
+        }
+      }
+    ],
+    "nextPageToken": null
+  }
+}

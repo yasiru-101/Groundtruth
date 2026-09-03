@@ -1,0 +1,45 @@
+{
+  "hash": "fb6d8e5c3e670326a9800c4066b7e16763a38862dd57a963b58e9ebac6562462",
+  "spec": {
+    "method": "POST",
+    "url": "/rest/api/3/issue",
+    "params": null,
+    "body": {
+      "fields": {
+        "project": {
+          "key": "DEMO"
+        },
+        "summary": "Add retry logic to checkout",
+        "description": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Checkout intermittently fails under load; add automatic retry with backoff.\n\nGiven: a payment fails transiently\nWhen: the checkout service retries\nThen: the order completes successfully"
+                }
+              ]
+            }
+          ]
+        },
+        "issuetype": {
+          "name": "Story"
+        },
+        "labels": [
+          "gt-idem",
+          "gt-idem-5fad27bced141fa0b82103cfc1a66862",
+          "gt-points-3",
+          "gt-component-checkout"
+        ]
+      }
+    }
+  },
+  "recorded_at": "2026-09-02T12:00:00+00:00",
+  "payload": {
+    "key": "DEMO-101",
+    "id": "10001"
+  }
+}
