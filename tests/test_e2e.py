@@ -127,8 +127,9 @@ class RecordingObserverGuard:
         args: list[str],
         check: bool = True,
         capture_output: bool = True,
+        env_extra: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        del check, capture_output
+        del check, capture_output, env_extra
         if args[:3] == ["gh", "pr", "list"]:
             return _completed(
                 args,

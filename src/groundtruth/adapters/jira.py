@@ -15,6 +15,7 @@ import httpx
 
 from groundtruth.adapters.base import Envelope, RequestSpec
 from groundtruth.config import RunMode, Settings
+from groundtruth.safety.redact import redact
 
 
 class JiraError(Exception):
@@ -68,26 +69,48 @@ class JiraClient:
         self._envelope = envelope
 
         if envelope.mode is not RunMode.REPLAY:
-            missing = [
-                name
-                for name, value in [
-                    ("JIRA_BASE_URL", settings.jira_base_url),
-                    ("JIRA_EMAIL", settings.jira_email),
-                    ("JIRA_API_TOKEN", settings.jira_api_token),
+            if settings.jira_auth_mode == "oauth":
+                missing = [
+                    name
+                    for name, value in [
+                        ("JIRA_CLOUD_ID", settings.jira_cloud_id),
+                        ("JIRA_ACCESS_TOKEN", settings.jira_access_token),
+                    ]
+                    if not value
                 ]
-                if not value
-            ]
+            else:
+                missing = [
+                    name
+                    for name, value in [
+                        ("JIRA_BASE_URL", settings.jira_base_url),
+                        ("JIRA_EMAIL", settings.jira_email),
+                        ("JIRA_API_TOKEN", settings.jira_api_token),
+                    ]
+                    if not value
+                ]
             if missing:
                 raise JiraError(
                     f"Jira adapter in {envelope.mode.value} mode requires: "
-                    f"{', '.join(missing)} (set in .env)"
+                    f"{', '.join(missing)} (set in .env or connect in Settings)"
                 )
 
-        self._client = client or httpx.Client(
-            base_url=settings.jira_base_url.rstrip("/"),
-            auth=(settings.jira_email, settings.jira_api_token),
-            timeout=30.0,
-        )
+        if settings.jira_auth_mode == "oauth":
+            self._client = client or httpx.Client(
+                base_url=f"https://api.atlassian.com/ex/jira/{settings.jira_cloud_id}",
+                headers={
+                    "Authorization": f"Bearer {settings.jira_access_token}",
+                    "Accept": "application/json",
+                    "Content-Type": "application/json",
+                },
+                timeout=30.0,
+            )
+        else:
+            self._client = client or httpx.Client(
+                base_url=settings.jira_base_url.rstrip("/"),
+                auth=(settings.jira_email, settings.jira_api_token),
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                timeout=30.0,
+            )
 
     def close(self) -> None:
         self._client.close()
@@ -110,7 +133,7 @@ class JiraClient:
                 raise JiraError(
                     f"Jira {method} {path} failed: HTTP {response.status_code}",
                     status_code=response.status_code,
-                    body=response.text[:2000],
+                    body=redact(response.text[:2000]),
                 )
             if response.status_code == 204 or not response.content:
                 return None

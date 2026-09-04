@@ -11,24 +11,42 @@ from fastapi.staticfiles import StaticFiles
 
 from groundtruth.api.jobs import JobStore
 from groundtruth.api.repository import ArtifactRepository
-from groundtruth.api.routers import agents, board, discrepancies, integrity, jobs, meta, runs, score
+from groundtruth.api.oauth import OAuthStateStore
+from groundtruth.api.routers import (
+    agents,
+    auth,
+    board,
+    connections,
+    discrepancies,
+    integrity,
+    jobs,
+    meta,
+    runs,
+    score,
+)
 from groundtruth.api.settings import ApiSettings
+from groundtruth.connections import ConnectionStore
+from groundtruth.safety.redact import redact
 
 
 def create_app(settings: ApiSettings | None = None) -> FastAPI:
     settings = settings or ApiSettings()
     repo = ArtifactRepository(settings.artifacts_dir)
     job_store = JobStore(settings)
+    connections_store = ConnectionStore(settings.connections_path)
+    oauth_state_store = OAuthStateStore()
 
     app = FastAPI(title="Groundtruth Dashboard", version="0.1.0")
     app.state.settings = settings
     app.state.repo = repo
     app.state.job_store = job_store
+    app.state.connections_store = connections_store
+    app.state.oauth_state_store = oauth_state_store
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
+        allow_origins=settings.allowed_origins,
+        allow_credentials=False,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -41,6 +59,8 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
     app.include_router(integrity.router)
     app.include_router(agents.router)
     app.include_router(jobs.router)
+    app.include_router(auth.router)
+    app.include_router(connections.router)
 
     # SPA static mount + fallback.
     static_dir = settings.static_dir
@@ -59,6 +79,6 @@ def create_app(settings: ApiSettings | None = None) -> FastAPI:
 
     @app.exception_handler(Exception)
     async def unhandled_exception(request: Request, exc: Exception) -> JSONResponse:
-        return JSONResponse({"detail": str(exc)}, status_code=500)
+        return JSONResponse({"detail": redact(str(exc))}, status_code=500)
 
     return app

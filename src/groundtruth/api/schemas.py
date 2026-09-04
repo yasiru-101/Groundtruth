@@ -221,3 +221,53 @@ class JobStatus(BaseModel):
     finished_at: Optional[str] = None
     result: Optional[dict] = None
     error: Optional[str] = None
+
+
+class GitHubConnectionStatus(BaseModel):
+    connected: bool
+    auth_kind: str = ""
+    repo_slug: str = ""
+    login: str = ""
+    scopes: list[str] = Field(default_factory=list)
+    oauth_available: bool = False
+
+
+class JiraConnectionStatus(BaseModel):
+    connected: bool
+    auth_kind: str = ""
+    site_url: str = ""
+    project_key: str = ""
+    email: str = ""
+    oauth_available: bool = False
+
+
+class LlmConnectionStatus(BaseModel):
+    connected: bool
+    provider: str = ""
+    base_url: str = ""
+    model: str = ""
+    key_last4: str = ""
+
+
+class ConnectionsStatus(BaseModel):
+    github: GitHubConnectionStatus
+    jira: JiraConnectionStatus
+    llm: LlmConnectionStatus
+
+
+class ParsedUrlResponse(BaseModel):
+    provider: str
+    valid: bool
+    owner: str = ""
+    name: str = ""
+    base_url: str = ""
+    project_key: str = ""
+
+
+class ConnectionTestResult(BaseModel):
+    ok: bool
+    message: str = ""
+
+
+class OAuthStartResponse(BaseModel):
+    authorize_url: str

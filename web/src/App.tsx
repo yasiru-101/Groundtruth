@@ -9,6 +9,7 @@ import { Integrity } from "@/pages/Integrity"
 import { Overview } from "@/pages/Overview"
 import { Report } from "@/pages/Report"
 import { Runs } from "@/pages/Runs"
+import { Settings } from "@/pages/Settings"
 
 export default function App() {
   const demo = useQuery({
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/report" element={<Report />} />
         <Route path="/integrity" element={<Integrity />} />
         <Route path="/runs" element={<Runs />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
     </Routes>
   )

@@ -22,3 +22,4 @@ workspace/
 .pytest_cache/
 .mypy_cache/
 .gt-report.json
+.groundtruth/

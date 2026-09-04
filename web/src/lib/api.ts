@@ -1,5 +1,7 @@
 import {
   type AgentSummary,
+  type ConnectionTestResult,
+  type ConnectionsStatus,
   type DemoResponse,
   type DeliveryItem,
   type DiscrepancyItem,
@@ -7,6 +9,8 @@ import {
   type JobStatus,
   type LedgerEntry,
   type LedgerIntegrity,
+  type OAuthStartResponse,
+  type ParsedUrlResponse,
   type PolicyResponse,
   type RunSummary,
   type ScoreComparison,
@@ -61,4 +65,51 @@ export const api = {
       body: JSON.stringify({ command }),
     }),
   jobStatus: (id: string) => fetchJson<JobStatus>(`/jobs/${id}`),
+  connections: () => fetchJson<ConnectionsStatus>("/connections"),
+  parseUrl: (url: string) =>
+    fetchJson<ParsedUrlResponse>("/connections/parse-url", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ url }),
+    }),
+  setGitHubRepo: (owner: string, name: string) =>
+    fetchJson<{ ok: boolean }>("/connections/github/repo", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ owner, name }),
+    }),
+  setGitHubPat: (owner: string, name: string, pat: string) =>
+    fetchJson<{ ok: boolean }>("/connections/github/pat", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ owner, name, pat }),
+    }),
+  setJiraProject: (base_url: string, project_key: string) =>
+    fetchJson<{ ok: boolean }>("/connections/jira/project", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ base_url, project_key }),
+    }),
+  setJiraBasic: (base_url: string, project_key: string, email: string, api_token: string) =>
+    fetchJson<{ ok: boolean }>("/connections/jira/basic", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ base_url, project_key, email, api_token }),
+    }),
+  setLlm: (provider: string, base_url: string, model: string, api_key: string) =>
+    fetchJson<{ ok: boolean }>("/connections/llm", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ provider, base_url, model, api_key }),
+    }),
+  testConnection: (provider: "github" | "jira" | "llm") =>
+    fetchJson<ConnectionTestResult>(`/connections/${provider}/test`, {
+      method: "POST",
+    }),
+  disconnect: (provider: "github" | "jira" | "llm") =>
+    fetchJson<{ ok: boolean }>(`/connections/${provider}`, {
+      method: "DELETE",
+    }),
+  oauthStart: (provider: "github" | "jira") =>
+    fetchJson<OAuthStartResponse>(`/auth/${provider}/start`),
 }

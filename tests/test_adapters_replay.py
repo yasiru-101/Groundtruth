@@ -209,8 +209,13 @@ class StubGuard:
         )
 
     def run_gh(
-        self, args: list[str], check: bool = True, capture_output: bool = True
+        self,
+        args: list[str],
+        check: bool = True,
+        capture_output: bool = True,
+        env_extra: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
+        del env_extra
         self.calls.append(list(args))
         if self.returncode != 0:
             raise subprocess.CalledProcessError(

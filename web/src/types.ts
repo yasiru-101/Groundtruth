@@ -224,3 +224,53 @@ export interface ChangesetItem {
   description: string
   items: Record<string, unknown>[]
 }
+
+export interface GitHubConnectionStatus {
+  connected: boolean
+  auth_kind: string
+  repo_slug: string
+  login: string
+  scopes: string[]
+  oauth_available: boolean
+}
+
+export interface JiraConnectionStatus {
+  connected: boolean
+  auth_kind: string
+  site_url: string
+  project_key: string
+  email: string
+  oauth_available: boolean
+}
+
+export interface LlmConnectionStatus {
+  connected: boolean
+  provider: string
+  base_url: string
+  model: string
+  key_last4: string
+}
+
+export interface ConnectionsStatus {
+  github: GitHubConnectionStatus
+  jira: JiraConnectionStatus
+  llm: LlmConnectionStatus
+}
+
+export interface ParsedUrlResponse {
+  provider: string
+  valid: boolean
+  owner: string
+  name: string
+  base_url: string
+  project_key: string
+}
+
+export interface ConnectionTestResult {
+  ok: boolean
+  message: string
+}
+
+export interface OAuthStartResponse {
+  authorize_url: string
+}

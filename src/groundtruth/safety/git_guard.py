@@ -307,6 +307,7 @@ class GitGuard:
         args: list[str],
         check: bool = True,
         capture_output: bool = True,
+        env_extra: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
         if not args or args[0] != "gh":
             raise GitRefusal("Only 'gh' commands are allowed.", args)
@@ -317,9 +318,14 @@ class GitGuard:
 
         self._validate_gh_target(args)
 
+        env = os.environ.copy()
+        if env_extra:
+            env.update(env_extra)
+
         return subprocess.run(
             args,
             cwd=str(self.sandbox_path),
+            env=env,
             capture_output=capture_output,
             text=True,
             shell=False,

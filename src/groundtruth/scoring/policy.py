@@ -9,6 +9,7 @@ edit (even whitespace) produces a different hash and a different
 from __future__ import annotations
 
 import hashlib
+import sys
 from pathlib import Path
 
 import yaml
@@ -16,7 +17,22 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from groundtruth.config import PROJECT_ROOT
 
-POLICY_PATH = PROJECT_ROOT / "scoring_policy.yaml"
+
+def _policy_path() -> Path:
+    """Return the scoring policy path. In a PyInstaller bundle the user may
+    place a custom policy next to the executable; otherwise fall back to the
+    bundled copy inside the extraction directory.
+    """
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).resolve().parent
+        user_policy = exe_dir / "scoring_policy.yaml"
+        if user_policy.exists():
+            return user_policy
+        return Path(sys._MEIPASS).resolve() / "scoring_policy.yaml"  # type: ignore[attr-defined]
+    return PROJECT_ROOT / "scoring_policy.yaml"
+
+
+POLICY_PATH = _policy_path()
 
 DIMENSION_NAMES = (
     "ac_validity",

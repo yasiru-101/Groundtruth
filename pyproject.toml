@@ -13,6 +13,7 @@ dependencies = [
     "pyyaml>=6",
     "python-dotenv>=1.0",
     "click>=8.1",
+    "cryptography>=42",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,7 @@ api = [
 dev = [
     "pytest>=8",
     "pytest-json-report>=1.5",
+    "pyinstaller>=6",
 ]
 
 [project.scripts]

@@ -516,34 +516,48 @@ def _require_intake_creds(settings: Settings) -> None:
     missing: list[str] = []
     if not settings.jira_base_url:
         missing.append("JIRA_BASE_URL")
-    if not settings.jira_email:
-        missing.append("JIRA_EMAIL")
-    if not settings.jira_api_token:
-        missing.append("JIRA_API_TOKEN")
+    if settings.jira_auth_mode == "oauth":
+        if not settings.jira_access_token:
+            missing.append("JIRA_ACCESS_TOKEN")
+        if not settings.jira_cloud_id:
+            missing.append("JIRA_CLOUD_ID")
+    else:
+        if not settings.jira_email:
+            missing.append("JIRA_EMAIL")
+        if not settings.jira_api_token:
+            missing.append("JIRA_API_TOKEN")
     if not settings.llm_model:
         missing.append("LLM_MODEL")
     if missing:
         raise RuntimeError(
-            f"Intake requires: {', '.join(missing)}. Set them in .env or environment."
+            f"Intake requires: {', '.join(missing)}. Set them in .env or connect accounts in Settings."
         )
 
 
 def _require_delivery_creds(settings: Settings) -> None:
     required = [
         ("JIRA_BASE_URL", settings.jira_base_url),
-        ("JIRA_EMAIL", settings.jira_email),
-        ("JIRA_API_TOKEN", settings.jira_api_token),
-        ("GITHUB_TOKEN", settings.github_token),
         ("GITHUB_REPO_OWNER", settings.github_repo_owner),
         ("GITHUB_REPO_NAME", settings.github_repo_name),
+        ("GITHUB_TOKEN", settings.github_token),
         ("LLM_API_KEY", settings.llm_api_key),
         ("LLM_MODEL", settings.llm_model),
         ("LLM_BASE_URL", settings.llm_base_url),
     ]
+    if settings.jira_auth_mode == "oauth":
+        required.extend([
+            ("JIRA_ACCESS_TOKEN", settings.jira_access_token),
+            ("JIRA_CLOUD_ID", settings.jira_cloud_id),
+        ])
+    else:
+        required.extend([
+            ("JIRA_EMAIL", settings.jira_email),
+            ("JIRA_API_TOKEN", settings.jira_api_token),
+        ])
     missing = [name for name, value in required if not value]
     if missing:
         raise RuntimeError(
-            f"Delivery requires: {', '.join(missing)}. Set them in .env or environment."
+            f"Delivery requires: {', '.join(missing)}. Set them in .env or connect accounts in Settings."
         )
 
 

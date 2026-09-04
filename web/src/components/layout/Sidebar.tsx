@@ -1,4 +1,4 @@
-import { Activity, BarChart3, FileText, LayoutDashboard, ShieldCheck } from "lucide-react"
+import { Activity, BarChart3, FileText, LayoutDashboard, Settings, ShieldCheck } from "lucide-react"
 import { NavLink } from "react-router-dom"
 
 const links = [
@@ -7,6 +7,7 @@ const links = [
   { to: "/agents", label: "Agents", icon: Activity },
   { to: "/report", label: "Report", icon: FileText },
   { to: "/integrity", label: "Integrity", icon: ShieldCheck },
+  { to: "/settings", label: "Settings", icon: Settings },
 ]
 
 export function Sidebar() {

@@ -17,6 +17,7 @@ from typing import Any
 from groundtruth.adapters.base import Envelope, RequestSpec
 from groundtruth.config import RunMode, Settings
 from groundtruth.safety.git_guard import GitGuard
+from groundtruth.safety.redact import redact
 
 
 class GitHubError(Exception):
@@ -66,11 +67,20 @@ class GitHubClient:
     def _gh(self, args: list[str], *, parse_json: bool = False) -> Any:
         spec = RequestSpec(method="GH", url="gh:cli", params={"args": args})
 
+        env_extra: dict[str, str] | None = None
+        token = self._settings.github_token
+        if token:
+            env_extra = {
+                "GH_TOKEN": token,
+                "GITHUB_TOKEN": token,
+                "GH_HOST": "github.com",
+            }
+
         def live() -> Any:
             try:
-                result = self._guard.run_gh(args)
+                result = self._guard.run_gh(args, env_extra=env_extra)
             except subprocess.CalledProcessError as exc:
-                stderr = (exc.stderr or "").strip()[:2000]
+                stderr = redact((exc.stderr or "").strip()[:2000])
                 raise GitHubError(
                     f"gh {' '.join(args[:4])}... failed "
                     f"(exit {exc.returncode}): {stderr}"
