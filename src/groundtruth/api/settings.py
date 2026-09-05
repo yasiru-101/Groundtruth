@@ -44,7 +44,7 @@ class ApiSettings:
             )
         ).resolve()
         self.api_host = os.getenv("GT_API_HOST", "0.0.0.0")
-        self.api_port = int(os.getenv("GT_API_PORT", "8000"))
+        self.api_port = int(os.getenv("PORT", os.getenv("GT_API_PORT", "8000")))
         self.demo_mode = os.getenv("GT_API_DEMO_MODE", "true").lower() in {
             "1",
             "true",

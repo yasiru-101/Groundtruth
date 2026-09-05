@@ -1,0 +1,11 @@
+﻿services:
+  - type: web
+    name: groundtruth-dashboard
+    runtime: docker
+    plan: free
+    region: oregon
+    envVars:
+      - key: GT_API_DEMO_MODE
+        value: "true"
+      - key: GT_ALLOWED_ORIGINS
+        value: "*"
