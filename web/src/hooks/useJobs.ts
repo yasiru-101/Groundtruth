@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useCallback, useEffect } from "react"
 
 import { api } from "@/lib/api"
+import { useJobContext } from "@/components/jobs/JobProvider"
+import { useToast } from "@/components/ui/toast"
 
 export function useJobs() {
   const queryClient = useQueryClient()
-  const [jobId, setJobId] = useState<string | null>(null)
+  const { jobId, setJobId } = useJobContext()
+  const { toast } = useToast()
 
   const submit = useMutation({
     mutationFn: api.submitJob,
@@ -25,14 +28,29 @@ export function useJobs() {
     },
   })
 
-  const refreshAll = () => {
+  const refreshAll = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["score"] })
     queryClient.invalidateQueries({ queryKey: ["discrepancies"] })
     queryClient.invalidateQueries({ queryKey: ["runs"] })
     queryClient.invalidateQueries({ queryKey: ["agents"] })
     queryClient.invalidateQueries({ queryKey: ["report"] })
     queryClient.invalidateQueries({ queryKey: ["plan"] })
-  }
+    queryClient.invalidateQueries({ queryKey: ["ledger"] })
+  }, [queryClient])
+
+  useEffect(() => {
+    if (!status.data) return
+    if (status.data.status === "completed") {
+      toast({ variant: "success", description: `${status.data.command} completed.` })
+      refreshAll()
+    } else if (status.data.status === "failed") {
+      toast({
+        variant: "error",
+        description: status.data.error || `${status.data.command} failed.`,
+      })
+      setJobId(null)
+    }
+  }, [status.data, setJobId, toast, refreshAll])
 
   return { submit, status, refreshAll }
 }

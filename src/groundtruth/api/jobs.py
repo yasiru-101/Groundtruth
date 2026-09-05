@@ -13,10 +13,11 @@ from groundtruth.api.settings import ApiSettings
 
 
 class Job:
-    def __init__(self, job_id: str, command: str, artifacts_dir: Path) -> None:
+    def __init__(self, job_id: str, command: str, artifacts_dir: Path, fixtures_dir: Path | None = None) -> None:
         self.job_id = job_id
         self.command = command
         self.artifacts_dir = artifacts_dir
+        self.fixtures_dir = fixtures_dir
         self.status = "pending"
         self.created_at = datetime.now(timezone.utc).isoformat()
         self.finished_at: str | None = None
@@ -29,6 +30,8 @@ class Job:
             **dict(__import__("os").environ),
             "GT_ARTIFACTS_DIR": str(self.artifacts_dir),
         }
+        if self.fixtures_dir:
+            env["GT_FIXTURES_DIR"] = str(self.fixtures_dir)
         cmd = [
             __import__("sys").executable,
             "-m",
@@ -75,6 +78,7 @@ class JobStore:
 
     def __init__(self, settings: ApiSettings) -> None:
         self.artifacts_dir = settings.artifacts_dir
+        self.fixtures_dir = settings.fixtures_dir
         self._executor = ThreadPoolExecutor(max_workers=2)
         self._jobs: dict[str, Job] = {}
 
@@ -82,7 +86,7 @@ class JobStore:
         if command not in {"audit", "score", "report"}:
             raise ValueError(f"command not allowed: {command}")
         job_id = str(uuid.uuid4())
-        job = Job(job_id, command, self.artifacts_dir)
+        job = Job(job_id, command, self.artifacts_dir, self.fixtures_dir)
         self._jobs[job_id] = job
         self._executor.submit(job.run)
         return job_id

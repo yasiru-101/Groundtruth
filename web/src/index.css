@@ -93,6 +93,16 @@ body {
   to { transform: translateX(100%); }
 }
 
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
 .animate-fade-in {
   animation: fade-in 150ms ease-out;
 }
@@ -107,4 +117,12 @@ body {
 
 .animate-slide-out-right {
   animation: slide-out-right 200ms ease-in;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 200ms ease-out;
+}
+
+.animate-slide-out-left {
+  animation: slide-out-left 200ms ease-in;
 }

@@ -2,10 +2,13 @@ import { useEffect, useState } from "react"
 import { AlertCircle, Brain, CheckCircle2, Cloud, GitBranch, Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PageHeader } from "@/components/layout/PageHeader"
+import { useToast } from "@/components/ui/toast"
 import {
   useConnections,
   useDisconnect,
@@ -22,14 +25,17 @@ import {
 export function Settings() {
   const { data: connections, isLoading } = useConnections()
 
+  const connectedCount =
+    (connections?.github.connected ? 1 : 0) +
+    (connections?.jira.connected ? 1 : 0) +
+    (connections?.llm.connected ? 1 : 0)
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-        <p className="text-sm text-muted-foreground">
-          Connect GitHub, Jira, and your LLM provider so Groundtruth can read and write on your behalf.
-        </p>
-      </div>
+      <PageHeader
+        title="Settings"
+        description="Connect GitHub, Jira, and your LLM provider so Groundtruth can analyze your live projects."
+      />
 
       {isLoading || !connections ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -37,31 +43,113 @@ export function Settings() {
           Loading connections...
         </div>
       ) : (
-        <Tabs defaultValue="github">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="github" className="gap-2">
-              <GitBranch className="h-4 w-4" />
-              GitHub
-            </TabsTrigger>
-            <TabsTrigger value="jira" className="gap-2">
-              <Cloud className="h-4 w-4" />
-              Jira
-            </TabsTrigger>
-            <TabsTrigger value="llm" className="gap-2">
-              <Brain className="h-4 w-4" />
-              LLM
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="github">
-            <GitHubCard status={connections.github} />
-          </TabsContent>
-          <TabsContent value="jira">
-            <JiraCard status={connections.jira} />
-          </TabsContent>
-          <TabsContent value="llm">
-            <LlmCard status={connections.llm} />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-6">
+          <Card className="border-border bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Live Analysis Readiness</span>
+                <Badge variant={connectedCount === 3 ? "default" : "secondary"}>
+                  {connectedCount} of 3 connected
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Groundtruth correlates Jira issues with Git reality and uses your LLM to score truthfulness.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-3 text-xs">
+                <div className="rounded-lg border p-3">
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <GitBranch className="h-3.5 w-3.5 text-primary" />
+                      GitHub
+                    </span>
+                    <span
+                      className={
+                        connections.github.connected
+                          ? "text-emerald-500 font-semibold"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {connections.github.connected ? "Connected" : "Disconnected"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    Reads commit history, PR links, merge states, and branch diffs.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <Cloud className="h-3.5 w-3.5 text-primary" />
+                      Jira
+                    </span>
+                    <span
+                      className={
+                        connections.jira.connected
+                          ? "text-emerald-500 font-semibold"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {connections.jira.connected ? "Connected" : "Disconnected"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    Extracts active sprint issues, ticket status transitions, and unverified done items.
+                  </p>
+                </div>
+
+                <div className="rounded-lg border p-3">
+                  <div className="flex items-center justify-between font-medium">
+                    <span className="flex items-center gap-1.5">
+                      <Brain className="h-3.5 w-3.5 text-primary" />
+                      LLM Provider
+                    </span>
+                    <span
+                      className={
+                        connections.llm.connected
+                          ? "text-emerald-500 font-semibold"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {connections.llm.connected ? "Connected" : "Disconnected"}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-muted-foreground">
+                    Evaluates governance policies, verifies discrepancies, and creates standup reports.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Tabs defaultValue="github">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="github" className="gap-2">
+                <GitBranch className="h-4 w-4" />
+                GitHub
+              </TabsTrigger>
+              <TabsTrigger value="jira" className="gap-2">
+                <Cloud className="h-4 w-4" />
+                Jira
+              </TabsTrigger>
+              <TabsTrigger value="llm" className="gap-2">
+                <Brain className="h-4 w-4" />
+                LLM
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="github">
+              <GitHubCard status={connections.github} />
+            </TabsContent>
+            <TabsContent value="jira">
+              <JiraCard status={connections.jira} />
+            </TabsContent>
+            <TabsContent value="llm">
+              <LlmCard status={connections.llm} />
+            </TabsContent>
+          </Tabs>
+        </div>
       )}
     </div>
   )
@@ -80,13 +168,18 @@ function GitHubCard({ status }: { status: { connected: boolean; repo_slug: strin
   const test = useTestConnection()
   const disconnect = useDisconnect()
   const oauth = useOAuthConnect("github")
+  const { toast } = useToast()
 
   useEffect(() => {
     if (oauth.result) {
       setMessage(`${oauth.result.status === "success" ? "Connected" : "OAuth failed"}: ${oauth.result.detail}`)
+      toast({
+        variant: oauth.result.status === "success" ? "success" : "error",
+        description: oauth.result.detail,
+      })
       oauth.clearResult()
     }
-  }, [oauth])
+  }, [oauth, toast])
 
   const handleParse = async () => {
     setMessage(null)
@@ -97,11 +190,15 @@ function GitHubCard({ status }: { status: { connected: boolean; repo_slug: strin
         setName(result.name)
         await saveRepo.mutateAsync({ owner: result.owner, name: result.name })
         setMessage(`Parsed and saved as ${result.owner}/${result.name}`)
+        toast({ variant: "success", description: `Parsed repo: ${result.owner}/${result.name}` })
       } else {
         setMessage("Could not parse GitHub repo URL.")
+        toast({ variant: "error", description: "Could not parse GitHub repo URL." })
       }
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Parse failed")
+      const msg = err instanceof Error ? err.message : "Parse failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
     }
   }
 
@@ -115,15 +212,28 @@ function GitHubCard({ status }: { status: { connected: boolean; repo_slug: strin
       await save.mutateAsync({ owner, name, pat })
       setPat("")
       setMessage("GitHub connection saved.")
+      toast({ variant: "success", description: "GitHub connection saved." })
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Save failed")
+      const msg = err instanceof Error ? err.message : "Save failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
     }
   }
 
   const handleTest = async () => {
     setMessage(null)
-    const result = await test.mutateAsync("github")
-    setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+    try {
+      const result = await test.mutateAsync("github")
+      setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+      toast({
+        variant: result.ok ? "success" : "error",
+        description: result.ok ? `GitHub connected: ${result.message}` : `GitHub test failed: ${result.message}`,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Test request failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
+    }
   }
 
   const canConnectOAuth = status.oauth_available && status.repo_slug && !status.connected
@@ -229,13 +339,18 @@ function JiraCard({ status }: { status: { connected: boolean; site_url: string; 
   const test = useTestConnection()
   const disconnect = useDisconnect()
   const oauth = useOAuthConnect("jira")
+  const { toast } = useToast()
 
   useEffect(() => {
     if (oauth.result) {
       setMessage(`${oauth.result.status === "success" ? "Connected" : "OAuth failed"}: ${oauth.result.detail}`)
+      toast({
+        variant: oauth.result.status === "success" ? "success" : "error",
+        description: oauth.result.detail,
+      })
       oauth.clearResult()
     }
-  }, [oauth])
+  }, [oauth, toast])
 
   const handleParse = async () => {
     setMessage(null)
@@ -246,11 +361,15 @@ function JiraCard({ status }: { status: { connected: boolean; site_url: string; 
         setProjectKey(result.project_key)
         await saveProject.mutateAsync({ base_url: result.base_url, project_key: result.project_key })
         setMessage(`Parsed and saved site ${result.base_url}${result.project_key ? `, project ${result.project_key}` : ""}`)
+        toast({ variant: "success", description: `Parsed Jira: ${result.project_key || result.base_url}` })
       } else {
         setMessage("Could not parse Jira URL.")
+        toast({ variant: "error", description: "Could not parse Jira URL." })
       }
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Parse failed")
+      const msg = err instanceof Error ? err.message : "Parse failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
     }
   }
 
@@ -264,15 +383,28 @@ function JiraCard({ status }: { status: { connected: boolean; site_url: string; 
       await save.mutateAsync({ base_url: baseUrl, project_key: projectKey, email, api_token: token })
       setToken("")
       setMessage("Jira connection saved.")
+      toast({ variant: "success", description: "Jira connection saved." })
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Save failed")
+      const msg = err instanceof Error ? err.message : "Save failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
     }
   }
 
   const handleTest = async () => {
     setMessage(null)
-    const result = await test.mutateAsync("jira")
-    setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+    try {
+      const result = await test.mutateAsync("jira")
+      setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+      toast({
+        variant: result.ok ? "success" : "error",
+        description: result.ok ? `Jira connected: ${result.message}` : `Jira test failed: ${result.message}`,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Test request failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
+    }
   }
 
   const canConnectOAuth = status.oauth_available && status.site_url && status.project_key && !status.connected
@@ -382,6 +514,7 @@ function LlmCard({ status }: { status: { connected: boolean; provider: string; b
   const save = useSetLlm()
   const test = useTestConnection()
   const disconnect = useDisconnect()
+  const { toast } = useToast()
 
   const applyPreset = (name: string) => {
     setProvider(name)
@@ -402,15 +535,28 @@ function LlmCard({ status }: { status: { connected: boolean; provider: string; b
       await save.mutateAsync({ provider, base_url: baseUrl, model, api_key: apiKey })
       setApiKey("")
       setMessage("LLM connection saved.")
+      toast({ variant: "success", description: "LLM configuration saved." })
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Save failed")
+      const msg = err instanceof Error ? err.message : "Save failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
     }
   }
 
   const handleTest = async () => {
     setMessage(null)
-    const result = await test.mutateAsync("llm")
-    setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+    try {
+      const result = await test.mutateAsync("llm")
+      setMessage(result.ok ? `Test passed: ${result.message}` : `Test failed: ${result.message}`)
+      toast({
+        variant: result.ok ? "success" : "error",
+        description: result.ok ? `LLM connected: ${result.message}` : `LLM test failed: ${result.message}`,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Test request failed"
+      setMessage(msg)
+      toast({ variant: "error", description: msg })
+    }
   }
 
   return (

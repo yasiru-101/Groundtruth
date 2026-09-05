@@ -1,6 +1,13 @@
+export function scoreBand(value: number): "high" | "mid" | "low" {
+  if (value >= 0.85) return "high"
+  if (value >= 0.6) return "mid"
+  return "low"
+}
+
 export function scoreColorClass(value: number): string {
-  if (value >= 0.85) return "text-emerald-500"
-  if (value >= 0.6) return "text-amber-500"
+  const band = scoreBand(value)
+  if (band === "high") return "text-emerald-500"
+  if (band === "mid") return "text-amber-500"
   return "text-rose-500"
 }
 

@@ -23,13 +23,34 @@ import {
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "/api"
 
+export class ApiError extends Error {
+  status: number
+
+  constructor(status: number, message: string) {
+    super(message)
+    this.name = "ApiError"
+    this.status = status
+  }
+}
+
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { accept: "application/json" },
     ...init,
   })
   if (!res.ok) {
-    throw new Error(`${res.status} ${res.statusText}`)
+    let message = `${res.status} ${res.statusText}`
+    try {
+      const body = await res.json()
+      if (body && typeof body.detail === "string") {
+        message = body.detail
+      } else if (body && typeof body.message === "string") {
+        message = body.message
+      }
+    } catch {
+      // leave the default message
+    }
+    throw new ApiError(res.status, message)
   }
   return res.json() as Promise<T>
 }

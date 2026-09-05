@@ -1,33 +1,26 @@
-import { useQuery } from "@tanstack/react-query"
 import { Route, Routes } from "react-router-dom"
 
 import { AppShell } from "@/components/layout/AppShell"
-import { api } from "@/lib/api"
+import { useSystemStatus } from "@/hooks/useSystemStatus"
 import { Agents } from "@/pages/Agents"
 import { Discrepancies } from "@/pages/Discrepancies"
 import { Integrity } from "@/pages/Integrity"
+import { NotFound } from "@/pages/NotFound"
 import { Overview } from "@/pages/Overview"
 import { Report } from "@/pages/Report"
 import { Runs } from "@/pages/Runs"
 import { Settings } from "@/pages/Settings"
 
 export default function App() {
-  const demo = useQuery({
-    queryKey: ["demo"],
-    queryFn: api.demo,
-  })
-  const health = useQuery({
-    queryKey: ["health"],
-    queryFn: api.health,
-  })
+  const { demoMode, projectKey } = useSystemStatus()
 
   return (
     <Routes>
       <Route
         element={
           <AppShell
-            demoMode={health.data?.demo_mode ?? true}
-            projectKey={demo.data?.project_key}
+            demoMode={demoMode}
+            projectKey={projectKey}
           />
         }
       >
@@ -38,6 +31,7 @@ export default function App() {
         <Route path="/integrity" element={<Integrity />} />
         <Route path="/runs" element={<Runs />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )

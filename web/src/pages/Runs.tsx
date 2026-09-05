@@ -1,6 +1,13 @@
 import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { GitCompare } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { EmptyState } from "@/components/common/EmptyState"
+import { ErrorState } from "@/components/common/ErrorState"
+import { PageHeader } from "@/components/layout/PageHeader"
+import { InfoHint } from "@/components/ui/info-hint"
 import {
   Table,
   TableBody,
@@ -11,9 +18,15 @@ import {
 } from "@/components/ui/table"
 import { useRuns } from "@/hooks/useRuns"
 import { api } from "@/lib/api"
+import { isNotFound } from "@/lib/query"
 import { scoreColorClass } from "@/score-band"
 import type { ScoreComparison } from "@/types"
-import { useQuery } from "@tanstack/react-query"
+
+const RUN_LABEL_DESCRIPTIONS: Record<string, string> = {
+  audit: "Scans Git commits and PRs against Jira tickets to find discrepancies.",
+  score: "Evaluates active policy dimensions to calculate the truthfulness score.",
+  report: "Generates the standup summary and sprint delivery plan.",
+}
 
 export function Runs() {
   const runs = useRuns()
@@ -28,36 +41,77 @@ export function Runs() {
     enabled: Boolean(before) && Boolean(after) && before !== after,
   })
 
-  if (runs.isLoading) return <div className="p-8 text-center text-muted-foreground">Loading runs…</div>
-
   return (
     <div className="space-y-6">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Run</TableHead>
-              <TableHead>Label</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Files</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {runs.data?.map((run) => (
-              <TableRow key={run.run_id}>
-                <TableCell className="mono text-xs">{run.run_dir}</TableCell>
-                <TableCell>
-                  <span className="rounded bg-secondary px-2 py-0.5 text-xs">{run.label}</span>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {new Date(run.created_at).toLocaleString()}
-                </TableCell>
-                <TableCell>{run.files.length}</TableCell>
+      <PageHeader
+        title="Runs"
+        description="Browse past runs and compare truthfulness scores over time."
+      />
+
+      {runs.isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>
+      ) : runs.error ? (
+        isNotFound(runs.error) ? (
+          <EmptyState
+            icon={GitCompare}
+            title="No past runs found"
+            description="Artifact runs will appear here after executing an audit, score, or report."
+          />
+        ) : (
+          <ErrorState
+            title="Failed to load runs"
+            error={runs.error}
+            retry={runs.refetch}
+          />
+        )
+      ) : runs.data?.length === 0 ? (
+        <EmptyState
+          icon={GitCompare}
+          title="No past runs found"
+          description="Artifact runs will appear here after executing an audit, score, or report."
+        />
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Run directory</TableHead>
+                <TableHead>
+                  <div className="flex items-center gap-1">
+                    <span>Label</span>
+                    <InfoHint text="The command that created this artifact: audit, score, or report." />
+                  </div>
+                </TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Files</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {runs.data?.map((run) => (
+                <TableRow key={run.run_id}>
+                  <TableCell className="mono text-xs">{run.run_dir}</TableCell>
+                  <TableCell>
+                    <span
+                      className="cursor-help rounded bg-secondary px-2 py-0.5 text-xs font-medium"
+                      title={RUN_LABEL_DESCRIPTIONS[run.label] ?? run.label}
+                    >
+                      {run.label}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(run.created_at).toLocaleString()}
+                  </TableCell>
+                  <TableCell>{run.files.length}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

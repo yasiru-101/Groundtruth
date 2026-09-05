@@ -174,7 +174,7 @@ class Envelope:
         """Run ``live`` (LIVE/RECORD) or serve the fixture (REPLAY)."""
         key = spec.request_hash()
 
-        if self._mode is RunMode.REPLAY:
+        if self.mode == RunMode.REPLAY:
             record = self._store.read(key)
             if self._seen_recorded_at is None:
                 self._seen_recorded_at = record.recorded_at
